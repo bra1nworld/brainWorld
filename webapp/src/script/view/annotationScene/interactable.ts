@@ -1,5 +1,5 @@
 import { Layer2d, Drawable } from "./layer2d"
-import * as dat from "../lib/dat.gui"
+import * as dat from "../../lib/dat.gui"
 import { ActionList } from "./actionList"
 import { AnnotationScene, Interactable, SmartPoints } from "./annotationScene"
 export abstract class InteractableAnnotationGeometry implements Interactable {
@@ -30,7 +30,7 @@ export namespace InteractableAnnotationGeometry {
             case "rectangle":
                 return new RectangleInteractable(data, actionList, readonly)
             case "points":
-                return new PointsInteractable(data, readonly)
+                return new PointsInteractable(data, actionList, readonly)
 
         }
     }
@@ -41,7 +41,6 @@ export class PointsInteractable extends InteractableAnnotationGeometry {
     points = SmartPoints.create()
     object = this.points.mesh
     pointIndice: number[] = []
-    actionPanel = new ActionPanel()
     private addPointReference(index: number) {
         if (this.pointIndice.indexOf(index) < 0) {
             this.pointIndice.push(index)
@@ -50,42 +49,45 @@ export class PointsInteractable extends InteractableAnnotationGeometry {
     private removePointReference(index: number) {
         this.pointIndice = this.pointIndice.filter(item => item !== index)
     }
-    constructor(public annotation: SceneAnnotation.Annotation, public readonly: boolean) {
+    constructor(public annotation: SceneAnnotation.Annotation, public actionList: ActionList, public readonly: boolean) {
         super()
         let geo = (annotation.geometry || {}) as SceneAnnotation.Annotation.Points
         this.pointIndice = geo.pointIndice || []
         this.points.color = new THREE.Color("#aa0000")
-        this.actionPanel.events.listenBy(this, "action", (action) => {
-            let rotatedPs = this.scene.points.getRotatedPoints()//获得旋转之后的点
-            let ps = this.scene.points.getPoints()
-            if (action === "add" || action === "substract") {
-                let proc = new RingDrawingProcedure(this.scene.layer2d)
-                proc.getRing((err, ring) => {
-                    let index = 0
-                    for (let point of rotatedPs) {//将ring和旋转之后的points坐标匹配
-                        let p25d = point.clone()
-                        // map to 2D screen space
-                        let ratio = window.devicePixelRatio
-                        p25d.project(this.scene.camera)
-                        p25d.x = Math.round((p25d.x + 1) * this.scene.canvas.width / 2)
-                        p25d.y = Math.round((- p25d.y + 1) * this.scene.canvas.height / 2)
-                        p25d.z = 0
-                        let p2 = new THREE.Vector2(p25d.x, p25d.y)
-                        if (ring.contains(p2)) {
-                            if (action === "add") {
-                                this.addPointReference(index)
-                            } else if (action === "substract") {
-                                this.removePointReference(index)
-                            }
-                        }
-                        index++
-                    }
-                    //根据旋转之后的点的index渲染对应index的mesh上的点
-                    this.syncPointReferences(ps)
-                })
-            }
+        this.actionList.events.listenBy(this, "action", (action) => {
+            this.startDraw(action)
         })
     }
+
+    startDraw(action: string) {
+        let rotatedPs = this.scene.points.getRotatedPoints()//获得旋转之后的点
+        let ps = this.scene.points.getPoints()
+        let proc = new RingDrawingProcedure(this.scene.layer2d)
+        proc.getRing((err, ring) => {
+            let index = 0
+            for (let point of rotatedPs) {//将ring和旋转之后的points坐标匹配
+                let p25d = point.clone()
+                // map to 2D screen space
+                let ratio = window.devicePixelRatio
+                p25d.project(this.scene.camera)
+                p25d.x = Math.round((p25d.x + 1) * this.scene.canvas.width / 2)
+                p25d.y = Math.round((- p25d.y + 1) * this.scene.canvas.height / 2)
+                p25d.z = 0
+                let p2 = new THREE.Vector2(p25d.x, p25d.y)
+                if (ring.contains(p2)) {
+                    if (action === "add") {
+                        this.addPointReference(index)
+                    } else if (action === "substract") {
+                        this.removePointReference(index)
+                    }
+                }
+                index++
+            }
+            //根据旋转之后的点的index渲染对应index的mesh上的点
+            this.syncPointReferences(ps)
+        })
+    }
+
     private syncPointReferences(ps) {
         this.points.setPoints(this.pointIndice.map(i => {
             return ps[i]
@@ -127,7 +129,7 @@ export class PointsInteractable extends InteractableAnnotationGeometry {
         color: "#000000"
     }
     startEdit() {
-        this.actionPanel.asPopup.show()
+
     }
     show() {
         if (this.points.mesh.visible) return
@@ -142,7 +144,6 @@ export class PointsInteractable extends InteractableAnnotationGeometry {
         this.redraw()
     }
     endEdit() {
-        this.actionPanel.asPopup.hide()
     }
     redraw() {
         this.points.mesh.visible = this.data.visible
@@ -160,11 +161,10 @@ export class PointsInteractable extends InteractableAnnotationGeometry {
         if (this.scene.points) {
             this.syncPointReferences(this.scene.points.getPoints())
         }
-        this.actionPanel.events.emit("action", "add")
+        this.startDraw("add")
     }
     detach() {
         this.deactivate()
-        this.actionPanel.asPopup.hide()
         this.scene.scene.remove(this.points.mesh)
         this.scene = null
     }

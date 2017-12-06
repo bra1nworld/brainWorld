@@ -1,11 +1,19 @@
-<div class=" {{active}} {{readonly}}" data-list="actionList" data-id="actionList">
+<div class=" {{active}} {{type}} {{points}}" data-list="actionList" data-id="actionList">
   <div class="slide-bar redraw" data-id="redraw">
     <img class="icon-bar " src="../../resource/images/click/restore.png " />
-    <span class="icon-span ">重画标注</span>
+    <span class="icon-span ">redraw</span>
   </div>
   <div class="slide-bar delete " data-id="delete">
     <img class="icon-bar " src="../../resource/images/normal/delete.png " />
-    <span class="icon-span ">删除标注</span>
+    <span class="icon-span ">delete</span>
+  </div>
+  <div class="slide-bar add" data-id="add">
+    <img class="icon-bar " src="../../resource/images/normal/add.png " />
+    <span class="icon-span ">add</span>
+  </div>
+  <div class="slide-bar substract " data-id="substract">
+    <img class="icon-bar " src="../../resource/images/normal/substract.png " />
+    <span class="icon-span ">substract</span>
   </div>
 </div>
 <style type="text/css " media="screen ">
@@ -18,7 +26,10 @@
       width: 70px;
       cursor: pointer;
     }
-
+    .add,
+    .substract {
+      display: none
+    }
     .slide-bar:hover {
       background: #0091FF;
     }
@@ -45,5 +56,16 @@
 
   &.readonly {
     display: none
+  }
+
+  &.points {
+    .add,
+    .substract {
+      display: inline-block
+    }
+    .redraw,
+    .delete {
+      display: none
+    }
   }
 </style>

@@ -1,14 +1,13 @@
-///<reference path="../main.ts"/>
+///<reference path="../../main.ts"/>
 import { AnnotationList } from "./annotationList"
-import { ObjectTypesDict } from "../dict"
+import { ObjectTypesDict } from "../../dict"
 import { AnnotationTypeList } from "./annotationTypeList"
 import { PreviewList } from "./previewList"
 import { Layer2d } from "./layer2d"
-import { App } from "../app"
-import { arrayEquals } from "../helpers"
-import { FrameTaskList } from "./frameTaskManager"
+import { App } from "../../app"
+import { arrayEquals } from "../../helpers"
 import { retry } from "async";
-export class AnnotationScene extends R.AnnotationScene {
+export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
     scene = new THREE.Scene()
     layer2d = new Layer2d()
     // //PerspectiveCamera:
@@ -37,8 +36,8 @@ export class AnnotationScene extends R.AnnotationScene {
     //gui.add(this, 'sizeAttenuation').onChange(this.redraw.bind(this));
     //gui.add(this, 'rotateSystem');
     constructor(public option: {
-        frameId: string,//保存annotations
-        readonly: boolean//是否只读(详情)
+        frameId?: string,//保存annotations
+        readonly?: boolean//是否只读(详情)
     }, public callback: Callback<null>) {
         super()
         this.renderer.setClearColor(0x000000, 0)
@@ -79,138 +78,23 @@ export class AnnotationScene extends R.AnnotationScene {
     initAnnotationList() {
         this.createList = new AnnotationTypeList(ObjectTypesDict)
 
-        this.annotationList = new AnnotationList(this, this.option.frameId, this.option.readonly)
+        this.annotationList = new AnnotationList(this, "", false)
         this.annotationList.events.listenBy(this, "initialized", () => {
             this.initAnnotations = this.annotationList.getAnnotations()
         })
     }
     initPreviewList() {
-        //查询当前帧数
-        App.api.getFrameTaskById({ id: this.option.frameId }, (err, result) => {
-            if (err) {
-                console.error(err)
-                return
-            }
-            App.api.getAnnotatingTaskById({ id: result.taskId }, (taskErr, annotatingTask) => {
-                if (taskErr) {
-                    console.error(taskErr)
-                    return
-                }
-                this.paddingSize = annotatingTask.paddingSize
-                this.VM.taskId = result.taskId;
-                this.VM.frameIndex = result.frameIndex.toString();
-                App.api.getBagInfo({
-                    filePath: result.videoPath
-                }, (err, bagInfo) => {
-                    if (err) {
-                        console.error(err)
-                        return
-                    }
-                    this.previewList = new PreviewList(result.frameIndex, bagInfo.frameCount)
-                    this.previewList.events.listenBy(this, "click", (index) => {
-                        this.previewFrame(result.videoPath, index, Number(result.frameIndex))
-                    })
-                })
-            })
-        })
-    }
 
-    previewFrame(videoPath: string, targetFrameIndex: number, currentAnnotationIndex: number) {
-        App.api.getFramePoints({
-            filePath: videoPath,
-            frameIndex: targetFrameIndex
-        }, (err, result) => {
-            if (this.points) this.scene.remove(this.points.mesh)
-            if (this.previewPoints) this.scene.remove(this.previewPoints.mesh)
-            this.previewPoints = SmartPoints.createFramePoints(result)
-            this.scene.add(this.previewPoints.mesh)
-            if (targetFrameIndex != currentAnnotationIndex) {
-                this.readonly(true)
-            } else {
-                this.readonly(this.option.readonly)
-            }
+        this.previewList = new PreviewList(233, 2333)
+        this.previewList.events.listenBy(this, "click", (index) => {
+            console.log(index)
         })
+
     }
 
     checkDataChanged(): boolean {
-        console.log(this.initAnnotations)
         let annotations: SceneAnnotation.Annotation[] = this.annotationList.getAnnotations()
-        console.log(annotations)
         return !(arrayEquals(this.initAnnotations, annotations))
-    }
-
-    onClickNextSavePage() {
-        let jumpString = "确定提交该帧数据并跳转到下一帧?"
-        if (this.checkDataChanged()) {
-            if (window.confirm(jumpString)) {
-                this.jumpAnnotationFrame(1)
-            }
-        } else {
-            this.jumpAnnotationFrame(1, true)
-        }
-    }
-
-    onClickPreSavePage() {
-        let jumpString = "确定提交该帧数据并跳转到上一帧?"
-        if (this.checkDataChanged()) {
-            if (window.confirm(jumpString)) {
-                this.jumpAnnotationFrame(-1)
-            }
-        } else {
-            this.jumpAnnotationFrame(-1, true)
-        }
-    }
-
-    jumpAnnotationFrame(jump: number, readonly?: boolean) {
-        let isReadonly = readonly ? true : false
-        App.api.getFrameTaskById({
-            id: this.option.frameId
-        }, (err, result) => {
-            if (err) {
-                console.error(err)
-                return
-            }
-            let query = {
-                taskId: result.taskId,
-                frameIndex: result.frameIndex + this.paddingSize * jump
-            }
-            App.api.findFrameTasks({
-                query: query
-            }, (err, nextFrame) => {
-                if (err) {
-                    console.error(err)
-                    return
-                }
-                if (nextFrame.length > 0) {
-                    let scene = this.createNewScene({
-                        frameId: nextFrame[0].id,
-                        readonly: this.option.readonly
-                    })
-                    if (!isReadonly) {
-                        this.submit()
-                    }
-                    this.replaceScene(scene)
-                } else {
-                    alert("已是最后一帧,或者无法跳转到下一帧,请返回列表并手动选择.")
-                }
-            })
-        })
-    }
-
-    replaceScene(newScene) {
-        document.body.removeChild(document.querySelector(".annotating-scene"))
-        newScene.appendTo(document.body)
-        newScene.render()
-    }
-
-    createNewScene(option: {
-        frameId: ID,
-        readonly: boolean
-    }) {
-        return new AnnotationScene({
-            frameId: option.frameId,
-            readonly: option.readonly
-        }, this.callback)
     }
 
     events = new Leaf.EventEmitter<{
@@ -221,31 +105,10 @@ export class AnnotationScene extends R.AnnotationScene {
         initialized
     }>()
     save(callback?: Callback) {
-        let annotations: SceneAnnotation.Annotation[] = this.annotationList.getAnnotations()
-        this.events.emit("saving")
-        App.api.updateFrameTask({
-            id: this.option.frameId,
-            updates: {
-                annotations: annotations
-            }
-        }, () => {
-            this.events.emit("saved")
-            callback()
-        })
+        callback()
     }
     submit(callback?: Callback) {
-        let annotations: SceneAnnotation.Annotation[] = this.annotationList.getAnnotations()
-        this.events.emit("submitting")
-        App.api.updateFrameTask({
-            id: this.option.frameId,
-            updates: {
-                annotations: annotations,
-                state: this.updateState
-            }
-        }, () => {
-            this.events.emit("submitted")
-            callback()
-        })
+        callback()
     }
 
     //返回按钮
@@ -255,7 +118,7 @@ export class AnnotationScene extends R.AnnotationScene {
             this.callback()
         } else {
             if (this.checkDataChanged()) {
-                if (window.confirm("确认返回?")) {
+                if (window.confirm("confirm back?")) {
                     document.body.removeChild(document.querySelector(".annotating-scene"))
                     this.callback()
                 }
@@ -268,13 +131,13 @@ export class AnnotationScene extends R.AnnotationScene {
 
     onClickSave() {
         this.save(() => {
-            this.notification("保存成功!")
+            this.notification("save success!")
         })
     }
 
     onClickSubmit() {
         this.submit(() => {
-            this.notification("提交成功!")
+            this.notification("submit success!")
         })
     }
 
@@ -290,7 +153,7 @@ export class AnnotationScene extends R.AnnotationScene {
             // this.camera.position.x = 0
             this.lockView = true
             this.controller.update()
-            this.VM.lockView = "解锁俯视角"
+            this.VM.lockView = "unlockView"
         } else {
             this.controller.maxPolarAngle = Math.PI;
             // this.camera.position.y = 150 / (Math.sqrt(2))
@@ -298,46 +161,35 @@ export class AnnotationScene extends R.AnnotationScene {
             // this.camera.position.x = 0
             this.lockView = false
             this.controller.update()
-            this.VM.lockView = "锁定俯视角"
+            this.VM.lockView = "lockView"
         }
     }
     public step = 0
     public points: SmartPoints
 
     loadCloud() {
-        App.api.getFrameTaskById({ id: this.option.frameId }, (err, frameTask) => {
-            if (err) {
-                console.error(err)
-                return
-            }
-            App.api.getFramePoints({
-                filePath: frameTask.videoPath,
-                frameIndex: frameTask.frameIndex
-            }, (err, result) => {
-                //使用BufferGeometry
-                this.points = SmartPoints.createFramePoints(result)
+        // App.api.getFrameTaskById({ id: this.option.frameId }, (err, frameTask) => {
+        //     if (err) {
+        //         console.error(err)
+        //         return
+        //     }
+        //     App.api.getFramePoints({
+        //         filePath: frameTask.videoPath,
+        //         frameIndex: frameTask.frameIndex
+        //     }, (err, result) => {
+        //         //使用BufferGeometry
+        //         this.points = SmartPoints.createFramePoints(result)
 
-                // this.points = SmartPoints.create()
-                // this.points.setFramePoints(result, new THREE.Color(0, 255, 255))
-                //旋转mesh，同时camera position为（0,50,0）,但实际points并未旋转
-                //旋转后-y轴朝屏幕外
-                // this.points.mesh.rotateX(-Math.PI / 2)
-
-                this.scene.add(this.points.mesh)
-                this.annotationList.provider.refresh()
-            })
-        })
-
-
-        // let loader = new THREE.PCDLoader()
-        // loader.load("/resource/test.pcd", (mesh) => {
-        //     this.points = SmartPoints.fromPointsCloud(mesh)
-        //     //旋转mesh，同时camera position为（0,50,0）,但实际points并未旋转
-        //     //旋转后-y轴朝屏幕外
-        //     this.points.mesh.rotateX(-Math.PI / 2)
-        //     this.scene.add(this.points.mesh)
-        //     this.annotationList.provider.refresh()
+        //         this.scene.add(this.points.mesh)
+        //         this.annotationList.provider.refresh()
+        //     })
         // })
+
+        let loader = new THREE.PCDLoader()
+        loader.load("/resource/test.pcd", (mesh) => {
+            this.points = SmartPoints.createFramePoints(SmartPoints.fromPointsCloud(mesh))
+            this.scene.add(this.points.mesh)
+        })
     }
 
     render() {
@@ -349,7 +201,7 @@ export class AnnotationScene extends R.AnnotationScene {
 
     notification(info: string) {
         Notification.requestPermission().then(() => {
-            let notification = new Notification("信息", {
+            let notification = new Notification("new message", {
                 body: info
             })
             setTimeout(() => {
@@ -458,67 +310,12 @@ export class SmartPoints {
     static fromPointsCloud(cloud: THREE.Points) {
         let bg = cloud.geometry as THREE.BufferGeometry
         let attrs = bg.getAttribute("position")
-        let counter = 0
-        let geo = new THREE.Geometry()
+        let counter = 0, resultPoints: Point[] = []
         while (counter < attrs.count) {
-            let p = new THREE.Vector3(attrs.getX(counter), attrs.getY(counter), attrs.getZ(counter))
+            resultPoints.push({ x: attrs.getX(counter), y: attrs.getY(counter), z: attrs.getZ(counter) })
             counter++
-            geo.vertices.push(p)
-            geo.colors.push(new THREE.Color(0x000000))
         }
-        let sp = new SmartPoints()
-        sp.geometry = geo
-        sp.material = new THREE.PointsMaterial({
-            size: 1,
-            transparent: true,
-            opacity: 1,
-            vertexColors: 0x000000,
-            sizeAttenuation: false,
-            color: 0x000000
-        })
-        sp.mesh = new THREE.Points(sp.geometry, sp.material)
-        return sp
-    }
-
-    static create() {
-        let sp = new SmartPoints()
-        sp.geometry = new THREE.Geometry()
-        sp.material = new THREE.PointsMaterial({
-            size: 2,
-            transparent: true,
-            opacity: 1,
-            // vertexColors: 0x000000,
-            sizeAttenuation: false,
-            // color: 0x000000
-        })
-        sp.geometry.vertices.push(new THREE.Vector3(0, 0, 0))
-        //sp.geometry.colors.push(new THREE.Color(0x000000))
-        sp.mesh = new THREE.Points(sp.geometry, sp.material)
-        return sp
-    }
-    static fromPoints(points: THREE.Points) {
-        let bg = points.geometry as THREE.BufferGeometry
-        let attrs = bg.getAttribute("position")
-        let counter = 0
-        let geo = new THREE.Geometry()
-        while (counter < attrs.count) {
-            let p = new THREE.Vector3(attrs.getX(counter), attrs.getY(counter), attrs.getZ(counter))
-            counter++
-            geo.vertices.push(p)
-            geo.colors.push(new THREE.Color(0x000000))
-        }
-        let sp = new SmartPoints()
-        sp.geometry = geo
-        sp.material = new THREE.PointsMaterial({
-            size: 0.2,
-            transparent: true,
-            opacity: 1,
-            vertexColors: 0x000000,
-            sizeAttenuation: false,
-        })
-        sp.mesh = new THREE.Points(sp.geometry, sp.material)
-        return sp
-
+        return resultPoints
     }
 
     static createFramePoints(points: Point[]) {
@@ -619,10 +416,26 @@ export class SmartPoints {
         return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
     }
 
+    static create() {
+        let sp = new SmartPoints()
+        sp.geometry = new THREE.Geometry()
+        sp.material = new THREE.PointsMaterial({
+            size: 2,
+            transparent: true,
+            opacity: 1,
+            // vertexColors: 0x000000,
+            sizeAttenuation: false,
+            // color: 0x000000
+        })
+        sp.geometry.vertices.push(new THREE.Vector3(0, 0, 0))
+        //sp.geometry.colors.push(new THREE.Color(0x000000))
+        sp.mesh = new THREE.Points(sp.geometry, sp.material)
+        return sp
+    }
+
     setFramePoints(points: Point[], color?: THREE.Color) {
         //该方法可以设置points颜色无效,只能通过material设置整体颜色
         this.geometry = new THREE.Geometry()
-        console.log(color)
         for (let p of points) {
             this.geometry.vertices.push(new THREE.Vector3(p.x, p.y, p.z))
             this.geometry.colors.push(new THREE.Color(0, 0, 255))

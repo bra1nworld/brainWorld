@@ -1,11 +1,11 @@
-import { Constructor, PopupEditor, Form } from "./form"
-import { ObjectTypesDict } from "../dict"
+import { Constructor, PopupEditor, Form } from "../form"
+import { ObjectTypesDict } from "../../dict"
 
 export const AnnotationCreateEditor = Form.create<SceneAnnotation.Annotation, typeof PopupEditor>({
     fields: {
         id: "ID",
-        color: "颜色",
-        objectType: "类型",
+        color: "color",
+        objectType: "type",
         // type: "标注方式"
     },
     types: {
@@ -24,8 +24,8 @@ export const AnnotationCreateEditor = Form.create<SceneAnnotation.Annotation, ty
 export const AnnotationInfoEditor = Form.create<SceneAnnotation.Annotation, typeof PopupEditor>({
     fields: {
         id: "ID",
-        color: "颜色",
-        objectType: "类型"
+        color: "color",
+        objectType: "type"
     },
     types: {
         id: "span",

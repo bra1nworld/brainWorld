@@ -1,27 +1,14 @@
 import * as Leaf from "leaf-ts"
 import * as RouteSpec from "../spec/route"
-import { BagProvider, BagReader } from "../util/bagProvider"
 export class FrameTaskAPIService extends RouteSpec.FrameTaskAPIServiceSpec {
     initialize() {
         this.api("getFramePoints", (ctx) => {
-            let backProvider = new BagProvider()
-            let bagRender = backProvider.get(ctx.body.filePath)
-            let frameCount = bagRender.getLength()
-            if (ctx.body.frameIndex > frameCount || ctx.body.frameIndex < 0) {
-                ctx.done(null, null)
-                return
-            }
-            let points = bagRender.getFrame(ctx.body.frameIndex).getPoints()
-            ctx.done(null, points)
+            ctx.done(null, null)
         })
 
         this.api("getBagInfo", (ctx) => {
-            let backProvider = new BagProvider()
-            let bagRender = backProvider.get(ctx.body.filePath)
-            let frameCount = bagRender.getLength()
-            let bagInfo: BagInfo = {};
-            bagInfo.frameCount = frameCount
-            ctx.done(null, bagInfo)
+
+            ctx.done(null, null)
         })
 
         this.api("queryFrameTasks", (ctx) => {

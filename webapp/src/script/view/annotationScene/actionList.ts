@@ -1,11 +1,9 @@
-import { PopupBehavior } from "../lib/behavior/popupBehavior"
-export class ActionList extends R.ActionList {
+import { PopupBehavior } from "../../lib/behavior/popupBehavior"
+export class ActionList extends R.AnnotationScene.ActionList {
     events
-    constructor(readonly: boolean) {
+    constructor(type: string) {
         super()
-        if (readonly) {
-            this.VM.readonly = true
-        }
+        this.VM.type = type
         let actions = this.UI.actionList.children as any;
         for (let action of actions) {
             action.onclick = () => {
@@ -13,5 +11,4 @@ export class ActionList extends R.ActionList {
             }
         }
     }
-    // asPopup = new PopupBehavior(this)
 }

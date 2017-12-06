@@ -1,12 +1,12 @@
-import { ListDataProvider } from "../lib/component/dataProvider"
+import { ListDataProvider } from "../../lib/component/dataProvider"
 import { AnnotationScene, Interactable } from "./annotationScene"
 import { AnnotationInfoEditor, AnnotationCreateEditor } from "./editors"
-import { App } from "../app"
-import { uuid } from "../helpers"
-import { ObjectTypes, ObjectTypesMap } from "../dict"
+import { App } from "../../app"
+import { uuid } from "../../helpers"
+import { ObjectTypes, ObjectTypesMap } from "../../dict"
 import { ActionList } from "./actionList"
 import { PointsInteractable, InteractableAnnotationGeometry } from "./interactable"
-export class AnnotationList extends R.AnnotationList {
+export class AnnotationList extends R.AnnotationScene.AnnotationList {
     provider
     events = new Leaf.EventEmitter<{
         initialized
@@ -15,37 +15,14 @@ export class AnnotationList extends R.AnnotationList {
         super()
         this.init()
     }
-    annotationList: Leaf.List<AnnotationListItem> | Leaf.List<CheckingAnnotationListItem>
+    annotationList: Leaf.List<AnnotationListItem>
     init() {
         //处理annotation-list-item数据
-        if (this.checkingList) {
-            this.provider = new ListDataProvider({
-                list: this.annotationList,
-                fetcher: App.api.getFrameAnnotatesById.with({
-                    id: this.frameId
-                }),
-                readonly: this.readonly,
-                Item: CheckingAnnotationListItem
-            })
-        } else {
-            this.provider = new ListDataProvider({
-                list: this.annotationList,
-                fetcher: App.api.getFrameAnnotatesById.with({
-                    id: this.frameId
-                }),
-                readonly: this.readonly,
-                Item: AnnotationListItem
-            })
-        }
-        this.provider.events.listenBy(this, "finished", () => {
-            this.events.emit("initialized")
-        })
         this.scene.createList.events.listenBy(this, "click", (value) => {
             this.createItem(value)
         })
-
     }
-    onChildAddAnnotationList(child: AnnotationListItem | CheckingAnnotationListItem) {
+    onChildAddAnnotationList(child: AnnotationListItem) {
         child.events.listenBy(this, "activate", () => {
             this.choose(child)
         })
@@ -55,10 +32,10 @@ export class AnnotationList extends R.AnnotationList {
         child.attach(this.scene)
         child.show()
     }
-    onChildRemoveAnnotationList(child: AnnotationListItem | CheckingAnnotationListItem) {
+    onChildRemoveAnnotationList(child: AnnotationListItem) {
         child.events.stopListenBy(this)
     }
-    choose(child: AnnotationListItem | CheckingAnnotationListItem) {
+    choose(child: AnnotationListItem) {
         child.show()
         if (this.current == child) return
         if (this.current) this.current.deactivate()
@@ -69,29 +46,17 @@ export class AnnotationList extends R.AnnotationList {
     createItem(objectType) {
         let editor = new AnnotationCreateEditor()
         let id = uuid()
-        // editor.edit({
-        //     id: id,
-        //     objectType: objectType,
-        //     type: "rectangle",
-        //     geometry: null,
-        //     color: "#" + Math.floor((Math.random() * 256 * 256 * 256)).toString(16)
-        // }, (err, result) => {
-        //     if (result) {
 
-        //         result.objectType = ObjectTypes[result.objectType] as any
-        //         let item = this.provider.insert(result)
-        //         this.choose(item)
-        //     }
-        // })
         let result = {
             id: id,
             objectType: objectType,
-            type: "rectangle",
+            type: objectType,
             geometry: null,
             color: "#" + this.createRandomColor()
         }
         result.objectType = ObjectTypes[result.objectType] as any
-        let item = this.provider.insert(result)
+        let item = new AnnotationListItem(result, objectType)
+        this.annotationList.push(item)
         this.choose(item)
     }
 
@@ -103,25 +68,24 @@ export class AnnotationList extends R.AnnotationList {
         return color
     }
 
-    public current: AnnotationListItem | CheckingAnnotationListItem
+    public current: AnnotationListItem
 
     getAnnotations() {
         return this.annotationList.map(item => item.toAnnotation())
     }
 }
-export class AnnotationListItem extends R.AnnotationList.AnnotationListItem {
+export class AnnotationListItem extends R.AnnotationScene.AnnotationList.AnnotationListItem {
     actionList: ActionList
-    constructor(public annotation: SceneAnnotation.Annotation, public readonly: boolean) {
+    constructor(public annotation: SceneAnnotation.Annotation, public type: string) {
         super()
-        this.actionList = new ActionList(readonly);
-        this.sphere = InteractableAnnotationGeometry.fromJSON(this.annotation, this.actionList, readonly)
+        this.actionList = new ActionList(type);
+        this.sphere = InteractableAnnotationGeometry.fromJSON(this.annotation, this.actionList, false)
         this.render()
     }
     sphere: InteractableAnnotationGeometry
     render() {
         this.sphere.setMeta({ color: this.annotation.color })
         this.sphere.redraw()
-        this.UI.hasError.checked = this.annotation.invalid
         this.UI.colorBlock.style.background = this.sphere.data.color
         this.VM.objectTypeIndex = ObjectTypesMap[ObjectTypes[this.annotation.objectType]]
     }
@@ -129,7 +93,7 @@ export class AnnotationListItem extends R.AnnotationList.AnnotationListItem {
         this.edit()
     }
     onClickRemove() {
-        if (window.confirm("确定删除?")) {
+        if (window.confirm("confirm delete?")) {
             this.detach(this.scene)
             this.events.emit("remove")
         }
@@ -216,25 +180,3 @@ export class AnnotationListItem extends R.AnnotationList.AnnotationListItem {
     }
 }
 
-export class CheckingAnnotationListItem extends AnnotationListItem {
-    constructor(public annotation: SceneAnnotation.Annotation, public readonly: boolean) {
-        super(annotation, readonly)
-        this.VM.checkingList = true
-    }
-    render() {
-        // this.VM.name = this.annotation.name
-        if (this.annotation.invalid) {
-            this.UI.hasError.checked = this.annotation.invalid
-        }
-        this.VM.objectTypeIndex = ObjectTypesMap[ObjectTypes[this.annotation.objectType]]
-        this.sphere.setMeta({ color: this.annotation.color })
-        this.sphere.redraw()
-        this.UI.colorBlock.style.background = this.sphere.data.color
-    }
-    toAnnotation(): SceneAnnotation.Annotation {
-        let ann = this.sphere.toJSON()
-        ann.objectType = this.annotation.objectType
-        ann.invalid = this.UI.hasError.checked
-        return ann
-    }
-}

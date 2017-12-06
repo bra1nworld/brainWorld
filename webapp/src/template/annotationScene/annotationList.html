@@ -6,25 +6,25 @@
     <template>
       <div class="{{active}} annotation-meta  ">
         <div class="option hasError {{checkingList}}">
-          <label class="checkbox">是否标注错误
+          <label class="checkbox">hasError
             <input type="checkbox" data-id="hasError" />
             <span class="box-span hasError-box"></span>
           </label>
         </div>
 
         <div class="option">
-          <span class="option-title">类型: </span>
+          <span class="option-title">type: </span>
           <span class="option-info">{{objectTypeIndex}}</span>
         </div>
         <div class="option">
 
-          <span class="option-title">颜色:</span>
+          <span class="option-title">color:</span>
           <div data-id="colorBlock" class="option-info color-block"></div>
         </div>
         <div class="option">
-          <span class="item-show operate {{show}}" data-id="show" title="显示item"></span>
-          <span class="item-edit operate" data-id="edit" title="编辑item"></span>
-          <span class="item-remove operate" data-id="remove" title="删除item"></span>
+          <span class="item-show operate {{show}}" data-id="show" title="showItem"></span>
+          <span class="item-edit operate" data-id="edit" title="editItem"></span>
+          <span class="item-remove operate" data-id="remove" title="removeItem"></span>
 
         </div>
 

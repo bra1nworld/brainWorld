@@ -1,6 +1,5 @@
 import * as Leaf from "leaf-ts"
 import * as RouteSpec from "../spec/route"
-import { BagProvider, BagReader } from "../util/bagProvider"
 export class AnnotatingTaskAPIService extends RouteSpec.AnnotatingTaskAPIServiceSpec {
     initialize() {
         this.api("createTestData", (ctx) => {

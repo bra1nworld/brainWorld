@@ -1,4 +1,4 @@
-export class AnnotationTypeList extends R.AnnotationTypeList {
+export class AnnotationTypeList extends R.AnnotationScene.AnnotationTypeList {
     createList
     events: Leaf.EventEmitter<{
         click,
@@ -18,7 +18,7 @@ export class AnnotationTypeList extends R.AnnotationTypeList {
     }
 }
 
-export class AnnotationTypeListItem extends R.AnnotationTypeList.CreateListItem {
+export class AnnotationTypeListItem extends R.AnnotationScene.AnnotationTypeList.CreateListItem {
     events: Leaf.EventEmitter<{
         click,
     }>

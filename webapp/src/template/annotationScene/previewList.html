@@ -1,7 +1,7 @@
 <div class="preview-list " data-list="previewList">
     <template>
         <span class="preview-item {{currentIndexNumber}}">
-            <span class="current-index-icon" title="返回当前帧"></span>
+            <span class="current-index-icon" title="back current frame"></span>
             <span class="preview-frame {{active}}">{{frameIndex}}</span>
         </span>
         <style type="text/css" media="screen">
@@ -57,8 +57,8 @@
             }
         </style>
     </template>
-    <span class="pre-page" title="预览上一帧" data-id="prePage"></span>
-    <span class="next-page" title="预览下一帧" data-id="nextPage"></span>
+    <span class="pre-page" title="prev" data-id="prePage"></span>
+    <span class="next-page" title="next" data-id="nextPage"></span>
 </div>
 <style>
     .next-page::before,

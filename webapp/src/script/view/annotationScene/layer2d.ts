@@ -1,4 +1,4 @@
-export class Layer2d extends R.Layer2d {
+export class Layer2d extends R.AnnotationScene.Layer2d {
     canvas: HTMLCanvasElement
     constructor() {
         super()

@@ -1,4 +1,4 @@
-export class PreviewList extends R.PreviewList {
+export class PreviewList extends R.AnnotationScene.PreviewList {
     previewList
     activeIndex: number
     previewListCount = 9
@@ -72,7 +72,7 @@ export class PreviewList extends R.PreviewList {
     }
 }
 
-export class PreviewListItem extends R.PreviewList.PreviewListItem {
+export class PreviewListItem extends R.AnnotationScene.PreviewList.PreviewListItem {
     events: Leaf.EventEmitter<{
         click,
     }>

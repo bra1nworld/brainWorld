@@ -30,7 +30,7 @@ export class Selection extends R.Form.Selection implements Field<string> {
             }
         }
     }
-    defaultHint = "请选择"
+    defaultHint = "please choose"
     setMeta(meta: {
         noDefault?: boolean
         defaultHint?: string

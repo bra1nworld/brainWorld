@@ -35,22 +35,26 @@ export function objToDict<T>(map: { [key: string]: T }): DictItem<T>[] {
     return value
 }
 export enum ObjectTypes {
-    "car" = 1,
-    "van",
-    "bus",
-    "tractorTruckHead",
-    "emptyTrailer",
-    "trailerWithContainer",
-    "others"
+    "rectangle" = 1,
+    "points"
+    // "car" = 1,
+    // "van",
+    // "bus",
+    // "tractorTruckHead",
+    // "emptyTrailer",
+    // "trailerWithContainer",
+    // "others"
 }
 export const ObjectTypesMap = {
-    "car": "小车",
-    "van": "小客车",
-    "bus": "大客车",
-    "tractorTruckHead": "卡车头",
-    "emptyTrailer": "空载卡车挂",
-    "trailerWithContainer": "有载卡车挂",
-    "others": "其他"
+    "rectangle": "rectangle",
+    "points": "points"
+    // "car": "小车",
+    // "van": "小客车",
+    // "bus": "大客车",
+    // "tractorTruckHead": "卡车头",
+    // "emptyTrailer": "空载卡车挂",
+    // "trailerWithContainer": "有载卡车挂",
+    // "others": "其他"
 }
 export const ObjectTypesDict: DictItem[] = objToDictReverse(
     ObjectTypesMap

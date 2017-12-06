@@ -9,7 +9,7 @@
           <span class="icon-span">{{lockView}}</span>
         </div>
         <div class=" create-area" data-id="createList">
-          <div class="create-list-title">新增</div>
+          <div class="create-list-title">CREATE</div>
           <widget class="create-list" data-name="createList">
           </widget>
         </div>
@@ -18,30 +18,29 @@
     <div class="outer-content">
       <div class="right-slide">
         <div class="confirm-area">
-          <img class="back confirm-icon" data-id="back" title="返回" src="../../resource/images/back.png" />
-          <img class="save confirm-icon" data-id="save" title="保存" src="../../resource/images/save.png" />
-          <img class="submit confirm-icon" data-id="submit" title="提交" src="../../resource/images/submit.png" />
+          <img class="back confirm-icon" data-id="back" title="back" src="../../resource/images/back.png" />
+          <img class="save confirm-icon" data-id="save" title="save" src="../../resource/images/save.png" />
+          <img class="submit confirm-icon" data-id="submit" title="submit" src="../../resource/images/submit.png" />
           <div class="isMissed">
-            <label class="checkbox">是否标注缺失
+            <label class="checkbox">isMissed
               <input type="checkbox" data-id="isMissed" />
               <span class="box-span"></span>
             </label>
           </div>
         </div>
         <div class="title">
-          任务ID : {{taskId}}
-          <br/> 当前帧 : {{frameIndex}}
+          annotations
         </div>
         <widget class="annotation-list" data-name="annotationList"></widget>
       </div>
     </div>
 
-    <div class="page-area">
+    <!-- <div class="page-area">
       <div class="page-content">
         <span class="pre-save-page" title="提交并跳转上一帧" data-id="preSavePage"></span>
         <span class="next-save-page" title="提交并跳转下一帧" data-id="nextSavePage"></span>
       </div>
-    </div>
+    </div> -->
     <div class="page-preview-area">
       <div class="page-preview">
         <widget class="preview-list" data-name="previewList">
