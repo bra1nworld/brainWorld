@@ -1,0 +1,13 @@
+{
+    dataset_config:
+    {
+        dataset_type: RosbagDataset,
+        path: /home/ptlab/Data/tianjin_2017-09-28-13-49-18.bag,
+        base_pose_topic: /novatel_data/inspvax,
+        velodyne_packets_topic: /velodyne_packets,
+        velodyne_calibration_path: /opt/ros/kinetic/share/velodyne_pointcloud/params/VLP16db.yaml,
+    },
+    seq: 20,
+    pointcloud_topic: /velodyne_packets,
+    pcd_path: /tmp/dump.pcd,
+}

@@ -1,0 +1,47 @@
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+
+cd $DIR/../
+. ./meta/env
+
+echo "Release CDN resource"
+./util/cdn
+CDNResult=$?
+if [ "$CDNResult" != "0" ];then
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    printf "${RED}CDN Critical failure: $CDNResult ${NC}\n"
+    exit 1
+fi
+
+[ ! -d $DIR/../meta/server ] && echo "Please symlink a server from avalon to /meta/server before release" && exit 1
+. $DIR/../meta/server/env
+
+echo "Release to server" $ServerName
+echo "User" $ServerUser
+ProjectName=$PROJECT_NAME
+path=$RELEASE_PATH
+
+ssh $ServerUser@$ServerIP -e $ServerRSA "mkdir -p $path"
+chmod 600 $ServerRSA
+rsync -e "ssh -i $ServerRSA" -aPziou --exclude ".git" --copy-links ./* $ServerUser@$ServerIP:$path/
+
+if [ -f "./dist/$PROJECT_NAME.nginx.conf" ];then
+    echo "Detect nginx config, release nginx config to remote server"
+    rsync -e "ssh -i $ServerRSA" -aPziou --exclude ".git" --copy-links ./dist/$PROJECT_NAME.nginx.conf $ServerUser@$ServerIP:/etc/nginx/sites-enabled/
+    echo "Try reloading nginx"
+    ssh $ServerUser@$ServerIP -i $ServerRSA "sudo nginx -t && sudo nginx -s reload"
+fi
+
+if [ -f "./dist/install.sh" ];then
+    echo "Release install script"
+    rsync -e "ssh -i $ServerRSA" -aPziou --exclude ".git" --copy-links ./dist/install.sh $ServerUser@$ServerIP:$path/install.sh
+    ssh $ServerUser@$ServerIP -i $ServerRSA "sudo $path/install.sh"
+fi

@@ -1,0 +1,105 @@
+// # Variables
+@menu-link-line-height: @control-line-height;
+@menu-indent: @gutter;
+@menu-text-color: @text-color;
+@menu-link-color: @text-color;
+@menu-link-color-hover: @text-color;
+@menu-link-bg-hover: @bg-light-l;
+@menu-link-color-active: @text-color;
+@menu-dark-text-color: @secondary-text-color-light;
+@menu-dark-link-color: @secondary-text-color-light;
+@menu-dark-link-color-hover: @white;
+@menu-dark-link-color-active: @white;
+.menu {
+    background-color: @bg;
+    color: @menu-text-color;
+    >.menu-tile {
+        & {
+            line-height: @menu-link-line-height;
+            cursor: pointer;
+            padding-left: @gutter;
+        }
+        &:hover {
+            color: @link-color-hover;
+        }
+        &.selected {
+            //border-right: 2px solid @select-text-color;
+            background-color: @accent-bg;
+            color: @text-color-light;
+        }
+    }
+}
+
+.menu.-recursive {
+    >.menu-tile {
+        >.content-area {
+            transition: all 200ms;
+            height: 0;
+            overflow: hidden;
+        }
+        &.expanded {
+            >.title-area {
+                color: @menu-link-color-active;
+            }
+            >.content-area {
+                height: auto;
+            }
+        }
+    }
+    >.menu-tile {
+        & {
+            padding-left: 0;
+        }
+        &:hover {
+            color: @menu-text-color;
+        }
+    }
+    >.menu-tile>.title-area {
+        & {
+            padding-left: @gutter;
+        }
+        &:hover {
+            color: @menu-link-color-hover;
+        }
+    }
+    >.menu-tile>.content-area>.menu>.menu-tile {
+        padding-left: @gutter + @menu-indent;
+    }
+}
+
+.menu.-dark {
+    & {
+        background-color: @bg-dark-h;
+        color: @menu-dark-text-color;
+    }
+    .menu-tile {
+        &:hover {
+            color: @link-color-light-hover;
+        }
+        &.selected {
+            //border-right: 2px solid @select-text-color;
+            background-color: @accent-bg;
+            color: @text-color-light;
+        }
+    }
+}
+
+.menu.-dark.-recursive {
+    & .menu {
+        background-color: @bg-dark;
+        color: @menu-dark-text-color;
+    }
+    >.menu-tile {
+        &.expanded {
+            >.title-area {
+                color: @menu-dark-link-color-active;
+            }
+        }
+        &:hover {
+            color: @menu-dark-text-color;
+        }
+        .title:hover {
+            color: @menu-dark-link-color-hover;
+        }
+    }
+}

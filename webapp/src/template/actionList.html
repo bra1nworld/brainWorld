@@ -1,0 +1,49 @@
+<div class=" {{active}} {{readonly}}" data-list="actionList" data-id="actionList">
+  <div class="slide-bar redraw" data-id="redraw">
+    <img class="icon-bar " src="../../resource/images/click/restore.png " />
+    <span class="icon-span ">重画标注</span>
+  </div>
+  <div class="slide-bar delete " data-id="delete">
+    <img class="icon-bar " src="../../resource/images/normal/delete.png " />
+    <span class="icon-span ">删除标注</span>
+  </div>
+</div>
+<style type="text/css " media="screen ">
+  & {
+    display: none;
+    height: 60px;
+    .slide-bar {
+      float: left;
+      height: 50px;
+      width: 70px;
+      cursor: pointer;
+    }
+
+    .slide-bar:hover {
+      background: #0091FF;
+    }
+
+    .icon-bar {
+      height: 24px;
+      width: 24px;
+      margin-left: 23px;
+    }
+
+    .icon-span {
+      display: block;
+      text-align: center;
+      font-family: PingFangSC-Regular;
+      font-size: 12px;
+      color: #CCCCCC;
+      line-height: 18px;
+    }
+  }
+
+  &.active {
+    display: block
+  }
+
+  &.readonly {
+    display: none
+  }
+</style>

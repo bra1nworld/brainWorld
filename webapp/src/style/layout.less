@@ -1,0 +1,18 @@
+.layout {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+    >.layout-content {
+        flex: 1
+    }
+}
+
+.layout.-has-sider {
+    display: flex;
+    flex-direction: row;
+    >.layout-sider {
+        display: block;
+        height: 100%;
+        flex-shrink: 0;
+    }
+}

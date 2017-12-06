@@ -1,0 +1,128 @@
+// # Typography
+@font-sans-serif: "-apple-system",
+BlinkMacSystemFont,
+"Segoe UI",
+"Roboto",
+"Oxygen",
+"Ubuntu",
+"Cantarell",
+"Fira Sans",
+"Droid Sans",
+"Open Sans",
+"Noto Sans",
+"Helvetica Neue",
+"Hiragino Sans GB",
+"Microsoft Yahei",
+Arial,
+sans-serif;
+@font-serif: "SimSun",
+Georgia,
+"Times New Roman",
+Times,
+serif;
+@font-monospace: Menlo,
+Monaco,
+Consolas,
+"Liberation Mono",
+"Courier New",
+monospace;
+@font-size-xs: 10px;
+@font-size-s: 12px;
+@font-size-m: 14px;
+@font-size-l: 16px;
+@font-size-xl: 18px;
+@font-size: @font-size-m;
+@line-height-xs: 16px;
+@line-height-s: 18px;
+@line-height-m: 20px;
+@line-height-l: 28px;
+@line-height-xl: 32px;
+@line-height: @line-height-m;
+// # Colors
+// ## Basic colors
+@primary-color: #4A90E2;
+@primary-color-l: #5F9FE8;
+@accent-color: #4A90E2;
+@accent-color-l: #5F9FE8;
+@secondary-color: #FFF;
+@black: #000;
+@white: #FFF;
+@gray: #C0C0C0;
+// ## Text colors
+// * dark
+@primary-text-color-dark: fade(@black, 100%);
+@secondary-text-color-dark: fade(@black, 80%);
+@hint-text-color-dark: fade(@black, 40%);
+@disabled-text-color-dark: fade(@black, 40%);
+// * light
+@primary-text-color-light: fade(@white, 100%);
+@secondary-text-color-light: fade(@white, 80%);
+@hint-text-color-light: fade(@white, 40%);
+@disabled-text-color-light: fade(@white, 40%);
+// * accent
+@accent-text-color: @primary-color;
+@accent-text-color-hover: @primary-color-l;
+@accent-text-color-light: @secondary-text-color-light;
+@accent-text-color-light-hover: @white;
+// * for short
+@primary-text-color: @primary-text-color-dark;
+@secondary-text-color: @secondary-text-color-dark;
+@hint-text-color: @hint-text-color-dark;
+@disabled-text-color: @disabled-text-color-dark;
+@text-color-dark: @primary-text-color-dark;
+@text-color-light: @primary-text-color-light;
+@text-color: @primary-text-color-dark;
+// * link
+@link-color: @primary-color;
+@link-color-hover: @primary-color-l;
+@link-color-light: @secondary-text-color-light;
+@link-color-light-hover: @white;
+// ## Background colors
+@bg-light-h: #E6E6E6;
+@bg-light-m: #ECECEC;
+@bg-light-l: @white;
+@bg-dark-h: #333;
+@bg-dark-m: #404040;
+@bg-dark-l: #999;
+@accent-bg-h: #367fa9;
+@accent-bg-m: #3c8dbc;
+@accent-bg-l: #72afd2;
+// * for short
+@bg: @white;
+@bg-light: @bg-light-m;
+@bg-dark: @bg-dark-m;
+@accent-bg: #3c8dbc;
+// ## Border colors
+@divider-color: fade(@black, 12%);
+@border-color-h: #767676;
+@border-color-m: #C0C0C0;
+@border-color-l: #DADADA;
+@accent-border-color: @primary-color;
+@accent-border-color-hover: @primary-color-l;
+@border-color: @border-color-m;
+@divider: 1px solid @divider-color;
+@border: 1px solid @border-color;
+@accent-border: 1px solid @accent-border-color;
+@accent-border-hover: 1px solid @accent-border-color-hover;
+// ## Shadow colors
+@shadow-color: fade(@black, 16%);
+// Metrics
+@control-line-height: @line-height-xl;
+@control-line-height-s: @line-height-l;
+@control-line-height-xs: @line-height;
+@gutter-xs: 2px;
+@gutter-s: 4px;
+@gutter: 8px;
+@gutter-l: 16px;
+@gutter-xl: 20px;
+@gutter-horizontal: @gutter;
+@gutter-vertical: @gutter;
+@border-radius-m: 4px;
+@border-radius-s: 2px;
+@border-radius: @border-radius-m;
+// Shadows
+@basic-shadow: 0 0 4px @shadow-color;
+@shadow: @basic-shadow;
+// Resources
+@img-root: "../resource/image";
+@icon-root: "../resource/image/icon";

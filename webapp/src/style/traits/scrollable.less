@@ -1,0 +1,19 @@
+.scrollable() {
+    &,
+    &.y-axis {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    &.x-axis {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+    &.both-axes {
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+}
+
+.scrollable {
+    .scrollable()
+}

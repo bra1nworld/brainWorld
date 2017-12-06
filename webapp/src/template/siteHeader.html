@@ -1,0 +1,32 @@
+<div class="site-header">
+    <div class="toolbar">
+        <a class="user-button">
+            欢迎您, {{userName}}
+        </a >
+        <a class="logout-button" data-id="logout">安全退出</a>
+    </div>
+</div>
+
+<style>
+    & {
+        display: flex;
+        justify-content: space-between;
+        line-height: @line-height-xl + @gutter*2;
+        height: @line-height-xl + @gutter*2;
+        color: @text-color-light;
+        background-color: @accent-bg;
+    }
+
+    >.toolbar {
+        display: flex;
+        flex: auto;
+        padding: 0 @gutter;
+        justify-content: flex-end;
+
+        .logout-button {
+            text-decoration: none;
+            margin-left: 20px;
+            cursor: pointer;
+        }
+    }
+</style>

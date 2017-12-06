@@ -1,0 +1,223 @@
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cd $DIR/../
+. ./meta/env
+. ./meta/cdn
+
+
+### Parameter resolve
+params="$(getopt -o h -l no-ts-rebuild,uglify,help,test --name "$(basename "$0")" -- "$@")"
+function usage(){
+    echo "$1 --no-ts-rebuld|--uglify|--test"
+}
+
+if [ $? -ne 0 ]
+then
+    usage
+    exit 0
+fi
+
+eval set -- "$params"
+unset params
+
+while true
+do
+    case $1 in
+        -h|--help)
+            usage
+            ;;
+        --no-ts-rebuild)
+            noTsRebuild="yes"
+            ;;
+        --uglify)
+            uglify="yes"
+            ;;
+        --test)
+            test="yes"
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+if [ -d ./webapp/node_modules ] || [ -d ./server/node_modules ];then
+    echo "Install missing dependenices"
+    ./util/configure
+fi
+
+if [ "$noTsRebuild" = "yes" ];then
+    echo "Skip building webapp ts..."
+else
+    echo "Building webapp ts...."
+    echo "Generating R.ts"
+    webapp/node_modules/leaf-ts/bin/leaf -l ./lib/leaf.d.ts webapp/src/R.conf.d.ts
+    echo "Generating R.api.ts"
+    server/node_modules/leaf-ts/bin/leaf --create-api ./server/src/spec/route.ts > webapp/src/script/R.api.ts
+    $tsc -p ./webapp/tsconfig.json
+    if [ "$test" = "yes" ];then
+        echo "Also build test"
+        $tsc -p ./webapp/src/test/tsconfig.json
+    fi
+fi
+
+echo "Building server ts...."
+$tsc -p ./server/tsconfig.json
+echo "Building stylesheet"
+./webapp/node_modules/less/bin/lessc ./webapp/src/style/main.less --autoprefix="" > ./webapp/src/style/main.css
+
+echo "Ensure empty dist folders"
+rm -rf ./dist/* >/dev/null 2>&1
+mkdir -p ./dist/webapp/style
+mkdir -p ./dist/webapp/script
+
+echo "Packaging apps"
+
+echo "Calculating project hash"
+rm /tmp/$PROJECT_NAME.version >/dev/null 2>&1
+# calculating all find hash http://info.michael-simons.eu/2008/10/25/recursively-md5sum-all-files-in-a-directory-tree/
+
+find ./webapp/src -type f -print0 | xargs -0 md5sum  >> /tmp/$PROJECT_NAME.version
+
+frontendVersion=($(md5sum /tmp/$PROJECT_NAME.version))
+
+mkdir -p ./dist/webapp/script
+mkdir -p ./dist/webapp/resource
+
+echo "Build runtime info into before bundle.js"
+cat <<EOF >> ./dist/webapp/script/bundle-$frontendVersion.js
+;window.RuntimeMeta = {
+    "version":"$frontendVersion",
+    "cdnBase":"$CDN_BASE"
+}
+EOF
+
+echo "Build bundle.js"
+./webapp/node_modules/leaf-require-cli/bin/leaf-require --main "main" -r "script" \
+             --stand-alone --compile \
+             ./webapp/src/script -c \
+             >> ./dist/webapp/script/bundle-$frontendVersion.js
+cp -rf ./webapp/src/resource/* ./dist/webapp/resource/
+cp ./webapp/src/style/main.css ./dist/webapp/style/main-$frontendVersion.css
+cp ./webapp/src/index.template.html ./dist/webapp/index.template.html
+
+
+function csed(){
+    case "$OSTYPE" in
+        darwin*)  sed -i ".backup" -e $@;; 
+        linux*)   sed -i $@;;
+        *)        sed -i ".backup" $@;;
+    esac
+}
+function escapePath(){
+    echo ${1//\//\\\/}
+}
+
+
+echo "purge debug sections"
+echo "version $frontendVersion, CDN: $CDN_BASE"
+csed "s/<\!--debug-->/<\!--debug>/g" ./dist/webapp/index.template.html
+csed "s/<\!--release>//g" ./dist/webapp/index.template.html
+csed "s/<\/release-->//g" ./dist/webapp/index.template.html
+csed '/^\s*$/d' ./dist/webapp/index.template.html
+csed "s/CDN_BASE/`escapePath $CDN_BASE`/g" ./dist/webapp/index.template.html
+csed "s/VERSION/$frontendVersion/g" ./dist/webapp/index.template.html
+csed "s/url(\\.\\./url(`escapePath $CDN_BASE`/g" ./dist/webapp/style/main-$frontendVersion.css
+csed "s/url(\"\\.\\./url(\"`escapePath $CDN_BASE`/g" ./dist/webapp/style/main-$frontendVersion.css
+
+
+if [ "$uglify" = "yes" ];then
+    ./webapp/node_modules/uglify/bin/uglify -s ./dist/webapp/script/bundle-$frontendVersion.js -o ./dist/webapp/script/bundle-$frontendVersion.min.js
+    ./webapp/node_modules/uglifycss/bin/uglifycss ./dist/webapp/style/main-$frontendVersion.css > ./dist/webapp/style/main-$frontendVersion.min.css
+fi
+
+echo $frontendVersion > ./dist/webapp/version
+
+echo "Build nginx file"
+
+if [ ! -z "$SERVER_DOMAIN" ];then
+    echo "detect server domain"
+    echo "auto build nginx config"
+    cat <<EOF > ./dist/"$PROJECT_NAME".nginx.conf
+server {
+	listen 80;
+
+	root /usr/share/nginx/html;
+	index index.html index.htm;
+        ## force http here
+        # if ( \$scheme = http ){
+        #    return 301 https://\$http_host\$request_uri;
+        # }
+	# Make site accessible from http://localhost/
+	server_name $SERVER_DOMAIN;
+	location / {
+                 proxy_pass              http://localhost:$SERVER_PORT/;
+                 proxy_redirect          off;
+                 proxy_set_header        Host \$host;
+                 proxy_set_header        X-Real-IP       \$remote_addr;
+                 proxy_set_header        X-Forwarded-For \$proxy_add_x_forwarded_for;
+                 proxy_read_timeout      600;
+                 gzip on;
+                 gzip_disable "MSIE [1-6]\.(?!.*SV1)";
+		 client_max_body_size 10M;
+                 gzip_vary on;
+                 gzip_proxied any;
+                 gzip_comp_level 6;
+                 gzip_buffers 16 8k;
+                 gzip_http_version 1.1;
+
+                 gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
+
+        }
+}
+EOF
+else
+    echo "fail to detect project domain, skip nginx build"
+fi
+
+echo "Creating systemd service"
+
+cat <<EOF > ./dist/server.$PROJECT_NAME.service
+
+[Unit]
+Description=$PROJECT_NAME service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=$RELEASE_PATH
+ExecStart=$RELEASE_PATH/util/start
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+cat <<EOF > ./dist/install.sh
+#!/bin/bash
+systemctl stop server.$PROJECT_NAME
+systemctl disable server.$PROJECT_NAME
+rm /etc/systemd/system/server.$PROJECT_NAME.service >/dev/null 2>&1
+
+cp $RELEASE_PATH/dist/server.$PROJECT_NAME.service /etc/systemd/system/
+
+systemctl enable server.$PROJECT_NAME
+systemctl start server.$PROJECT_NAME
+
+nginx -t && nginx -s reload || echo "Fail to load nginx"
+EOF
+
+chmod +x ./dist/install.sh

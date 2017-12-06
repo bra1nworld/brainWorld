@@ -1,0 +1,30 @@
+<div>
+  <div class="title">{{displayName}}:</div>
+  <select class="info" data-id="selection" data-list="selectionList">
+    <template>
+      <option>{{displayName}}</option>
+    </template>
+  </select>
+</div>
+<style type="text/css" media="screen">
+  & {
+    margin: 20px;
+    font-family: PingFangSC-Regular;
+    font-size: 12px;
+    color: #696969;
+    line-height: 18px;
+    .title {
+      margin-bottom: 10px;
+    }
+    .info {
+      cursor: pointer;
+      width: 100px;
+      height: 30px;
+      background: #393C40;
+      border-radius: 4px;
+      border: none;
+      color: #CCCCCC;
+      line-height: 30px;
+    }
+  }
+</style>

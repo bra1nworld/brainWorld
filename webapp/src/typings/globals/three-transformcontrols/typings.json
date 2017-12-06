@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/4f7524fc65c0d1389af81a83a95dfe1ea59ad5e9/three/three-transformcontrols.d.ts",
+    "raw": "registry:dt/three-transformcontrols#0.0.0+20160405225030",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/4f7524fc65c0d1389af81a83a95dfe1ea59ad5e9/three/three-transformcontrols.d.ts"
+  }
+}

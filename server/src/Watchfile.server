@@ -1,0 +1,9 @@
+//{basename} /css/style.less => style.less
+//{fullpath} /css/style.less => /css/style.less (unchanged)
+//{filename} /css/style.less => style
+//{extname}  /css/style.less => .less
+//{directory} /css/style.less => /css/
+exports.watchList = [
+    [/^.*\.ts$/,'../node_modules/typescript/bin/tsc -p ../tsconfig.json && ../debug/notify "TS compiled" || ../debug/notify "TS compile failed"'],
+    [/^spec\/route.ts$/,"../node_modules/leaf-ts/bin/leaf --create-api ./spec/route.ts > ../../webapp/src/script/R.api.ts && echo 'Frontend API Rebuild' || echo 'Frontend API Build failed'"]
+]

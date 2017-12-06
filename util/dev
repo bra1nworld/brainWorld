@@ -1,0 +1,52 @@
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd $DIR/../
+. ./meta/env
+
+name=`cat meta/name`
+sessionName=$name-session
+
+
+while true;do
+    tmux has-session -t $sessionName
+    hasSession=$?
+
+    if [ "$hasSession" = "0" ];then
+        tmux attach -t $sessionName
+        exit 0
+    fi
+    echo "waiting for initial build..."
+    
+    $tsc -p webapp/tsconfig.json
+    $tsc -p webapp/src/test/tsconfig.json
+    $tsc -p server/tsconfig.json
+
+    node_bin="../node_modules/nodemon/bin/nodemon.js"
+    tmux set-option -g default-shell /bin/bash
+    tmux new-session -d -s $sessionName -n "compile" "trap '' 2;. meta/env;cd webapp/src;../node_modules/watchcompile/bin/watchcompile -s -f ./Watchfile.webapp;$SHELL"
+
+    tmux set-option -g default-shell /bin/bash
+    tmux split-window -t $sessionName:"compile" "trap '' 2;. meta/env;cd server/src;../node_modules/watchcompile/bin/watchcompile -s -f ./Watchfile.server;$SHELL"
+
+    tmux set-option -g default-shell /bin/bash
+    tmux new-window -a -t $sessionName:"compile" -n "server" "trap '' 2;. meta/env;cd server/src;$node_bin ./bootstrap.js --port $SERVER_PORT --host $SERVER_HOST --project-name $PROJECT_NAME --project-domain $PROJECT_DOMAIN --debug;$SHELL"
+
+    tmux set-option -g default-shell /bin/bash
+    tmux new-window -a -t $sessionName:"server" -n "$SHELL" ". meta/env;$SHELL"
+
+    tmux attach -t $sessionName
+    # Auto restart if have .dev-init/dev.restart
+    if [ -f .dev-init/dev.restart ];then
+        rm .dev-init/dev.restart
+        echo "Detecting dev.restart auto restart session"
+        continue
+    fi
+    break
+done

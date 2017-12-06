@@ -1,0 +1,58 @@
+<table class="table -as-list {{name}} {{withoutCheckbox}} {{withoutAction}} {{withFocus}}">
+  <thead class="thead" data-id="thead">
+    <template data-name="head">
+      <tr class="tr">
+        <th class="th -checkbox">
+          <input data-id="checkbox" type="checkbox" class="checkbox">
+        </th>
+        <th data-id="actions" class="th -action">操作</th>
+      </tr>
+    </template>
+  </thead>
+  <tbody class="tbody" data-list="rows">
+    <template data-name="row">
+      <tr class="tr {{focus}}">
+        <td class="td -checkbox">
+          <input data-id="checkbox" type="checkbox" class="checkbox">
+        </td>
+        <td data-id="actions" class="td -action" data-list="actions">
+          <template data-name="actionButton">
+            <span class="action-button"></span>
+          </template>
+        </td>
+      </tr>
+    </template>
+  </tbody>
+</table>
+<style>
+  &.without-checkbox {
+    .th.-checkbox,
+    .td.-checkbox {
+      display: none;
+    }
+  }
+
+  &.with-focus {
+    .tbody>.tr {
+      cusror: pointer;
+    }
+  }
+
+  &.without-action {
+    .th.-action,
+    .td.-action {
+      display: none;
+    }
+  }
+
+  .td.-action {
+    .action-button {
+      .link-button;
+      margin: 0 @gutter-s;
+    }
+  }
+
+  .tbody.tr.focus {
+    color: @accent-text-color;
+  }
+</style>

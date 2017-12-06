@@ -1,0 +1,11 @@
+#!/bin/bash
+
+content=$1
+case "$OSTYPE" in
+  solaris*) echo "SOLARIS not supported";;
+  darwin*)  which reattach-to-user-namespace > /dev/null && reattach-to-user-namespace osascript -e "display notification \"$content\" with title \"Dev util\"";; 
+  linux*)   notify-send "$content";;
+  bsd*)     echo "BSD not supported" ;;
+  msys*)    echo "WINDOWS notesupported" ;;
+  *)        echo "unknown: $OSTYPE" ;;
+esac

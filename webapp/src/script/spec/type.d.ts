@@ -1,0 +1,1 @@
+../../../../server/src/spec/type.d.ts

@@ -1,0 +1,74 @@
+.icon(@name) {
+    background-image: url("@{icon-root}/png/@{name}.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    width: @line-height;
+    height: @line-height;
+}
+
+.icon {
+    display: inline-block;
+    &.-search {
+        .icon(@name: "search");
+    }
+    &.-dec,
+    &.-expand {
+        .icon(@name: "descend");
+    }
+    &.-asc,
+    &.-collapse {
+        .icon(@name: "ascend");
+    }
+    &.-prev {
+        .icon(@name: "prev");
+    }
+    &.-next {
+        .icon(@name: "next");
+    }
+    &.-upload {
+        .icon(@name: "upload");
+    }
+    &.-close {
+        .icon(@name: "close");
+    }
+    &.-desktop {
+        .icon(@name: "desktop");
+    }
+    &.-pin {
+        .icon(@name: "pin");
+    }
+    &.-recent {
+        .icon(@name: "recent");
+    }
+    &.-date {
+        .icon(@name: "date");
+    }
+    &.-time {
+        .icon(@name: "time");
+    }
+    &.-ult-prev {
+        .icon(@name: "ult-prev");
+    }
+    &.-ult-next {
+        .icon(@name: "ult-next");
+    }
+    &.-checkbox {
+        .icon(@name: "checkbox");
+    }
+    &.-checkbox.checked {
+        .icon(@name: "checked");
+    }
+    &.-expand-arrow-right {
+        .icon(@name: "right")
+    }
+    &.-expand-arrow-down {
+        .icon(@name: "down")
+    }
+    &.-ellipsis {
+        .icon(@name: "dot")
+    }
+    &.-add {
+        .icon(@name: "add")
+    }
+}

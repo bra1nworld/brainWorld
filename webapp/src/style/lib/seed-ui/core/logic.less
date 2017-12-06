@@ -1,0 +1,33 @@
+.state(@rest...) {
+    @counter: length(@rest) - 2;
+    @defaultRuleset: extract(@rest,@counter + 1);
+    @activeRuleset: extract(@rest,@counter + 2);
+    .test {
+        width: @counter;
+        @defaultRuleset();
+    }
+    .generate-states(@counter;@i:1) when (@i<=@counter) {
+        @item: extract(@rest, @i);
+        @stateSelector: e(%(".%a-%d",state,@item));
+        .@{item} {
+            width: @counter;
+            @defaultRuleset();
+        }
+        @{stateSelector} .@{item} {
+            @activeRuleset();
+        }
+        .generate-states(@counter;(@i+1));
+    }
+    .generate-states(@counter);
+}
+
+// usage
+// @default: {
+//     display: none;
+// };
+
+// @active: {
+//     display: block;
+// };
+
+// .state(hide,show,@default,@active);

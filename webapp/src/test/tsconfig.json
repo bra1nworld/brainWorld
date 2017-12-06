@@ -1,0 +1,16 @@
+{
+    "compilerOptions":{
+        "target": "ES5",
+        "experimentalDecorators": true,
+        "sourceMap": false,
+        "module":"commonjs"
+    },
+    "include":[
+        "script/R.ts",
+        "script/**/*.ts",
+        "script/*.ts",
+        "*.ts",
+        "**/*.ts",
+        "typings/index.d.ts"
+    ]
+}

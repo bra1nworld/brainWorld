@@ -1,0 +1,31 @@
+<div class="pagination -s">
+    <div class="message-bar">
+        第{{pageIndex}}页 / 共{{pageTotal}}页
+    </div>
+    <div class="action-bar">
+        <div class="page-action" data-id="goFirst">
+            <i class="icon -ult-prev"></i>
+        </div>
+        <div class="page-action" data-id="goPrev">
+            <i class="icon -prev"></i>
+        </div>
+        <div class="action-group" data-list="pageIndexList">
+        </div>
+        <div class="page-action" data-id="goNext">
+            <i class="icon -next"></i>
+        </div>
+        <div class="page-action" data-id="goLast">
+            <i class="icon -ult-next"></i>
+        </div>
+    </div>
+    <template data-name="pageIndexItem">
+        <div class="page-index {{selected}}">
+            {{index}}
+        </div>
+    </template>
+    <template data-name="pageEllipsisItem">
+        <div class="page-action disabled">
+            <i class="icon -ellipsis"></i>
+        </div>
+    </template>
+</div>

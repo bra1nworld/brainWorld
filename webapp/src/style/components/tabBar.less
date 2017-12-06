@@ -1,0 +1,39 @@
+@tabBar-font-size: @font-size;
+@hover-text-color: @primary-color-light;
+@select-text-color: @primary-color;
+@tab-br: @border-radius;
+@tab-height: @control-line-height;
+
+.tabBar {
+    display: flex;
+    .tab {
+        position: relative;
+        margin-left: -1px;
+        padding: 0 15px;
+        height: @tab-height;
+        font-size: @tabBar-font-size;
+        line-height: @tab-height - 2;
+        text-align: center;
+        border: 1px solid @gray;
+        box-sizing: border-box;
+        background: #fff;
+        cursor: pointer;
+        &:hover {
+            color: @hover-text-color;
+        }
+        &.-selected {
+            color: @select-text-color;
+            border-color: @select-text-color;
+            z-index: 2;
+        }
+    }
+    &>:first-child {
+        border-radius: @tab-br 0 0 @tab-br;
+        margin-left: 0;
+    }
+    &>:last-child {
+        border-radius: 0 @tab-br @tab-br 0;
+    }
+    &.-medium {}
+    &.-minimum {}
+}

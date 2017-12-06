@@ -1,0 +1,71 @@
+<div class="site-sider">
+    <div class="title-area">
+        <a class="title">
+            <span class="client">
+                {{clientName}}
+            </span>
+            <span>
+                管理系统
+            </span>
+        </a>
+    </div>
+    <div class="content-area">
+        <div class="menu -dark -recursive" data-list="entryList">
+            <template data-name="entryListItem">
+                <div class="menu-tile {{expanded}} {{available}}">
+                    <div data-id="expand" class="title-area">
+                        <div class="title">
+                            {{name}}
+                        </div>
+                    </div>
+                    <div class="content-area">
+                        <div class="menu " data-list="subEntryList">
+                            <template data-name="subEntryListItem">
+                                <div class="menu-tile {{available}} {{selected}}">
+                                    {{name}}
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
+
+<style>
+    & {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        >.title-area {
+            display: block;
+            padding: 0 @gutter;
+            background-color: @accent-bg-h;
+            >.title {
+                line-height: @line-height-xl + @gutter*2;
+                height: @line-height-xl + @gutter*2;
+                color: @text-color-light;
+                text-decoration-line: none;
+            }
+            font-size: @font-size-xl;
+            >.title>.client {
+                font-weight: bold;
+            }
+        }
+        >.content-area {
+            flex: 1;
+            background-color: @bg-dark-h;
+            >.menu {
+                height: 100%;
+                .scrollable;
+            }
+        }
+    }
+</style>
+
+<script data-role="init">
+    {
+        clientName: ""
+    }
+</script>

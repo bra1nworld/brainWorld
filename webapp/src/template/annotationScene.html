@@ -1,0 +1,306 @@
+<div class="annotating-scene {{readonly}} {{checkingScene}} {{reAnnotaingScene}}">
+  <div class="cover">
+    <canvas data-id="canvas"></canvas>
+
+    <div class="left-slide">
+      <div class="slide-area">
+        <div class="slide-bar lock" data-id="changeView">
+          <img class="icon-bar" src="../../resource/images/click/unlock.png" />
+          <span class="icon-span">{{lockView}}</span>
+        </div>
+        <div class=" create-area" data-id="createList">
+          <div class="create-list-title">新增</div>
+          <widget class="create-list" data-name="createList">
+          </widget>
+        </div>
+      </div>
+    </div>
+    <div class="outer-content">
+      <div class="right-slide">
+        <div class="confirm-area">
+          <img class="back confirm-icon" data-id="back" title="返回" src="../../resource/images/back.png" />
+          <img class="save confirm-icon" data-id="save" title="保存" src="../../resource/images/save.png" />
+          <img class="submit confirm-icon" data-id="submit" title="提交" src="../../resource/images/submit.png" />
+          <div class="isMissed">
+            <label class="checkbox">是否标注缺失
+              <input type="checkbox" data-id="isMissed" />
+              <span class="box-span"></span>
+            </label>
+          </div>
+        </div>
+        <div class="title">
+          任务ID : {{taskId}}
+          <br/> 当前帧 : {{frameIndex}}
+        </div>
+        <widget class="annotation-list" data-name="annotationList"></widget>
+      </div>
+    </div>
+
+    <div class="page-area">
+      <div class="page-content">
+        <span class="pre-save-page" title="提交并跳转上一帧" data-id="preSavePage"></span>
+        <span class="next-save-page" title="提交并跳转下一帧" data-id="nextSavePage"></span>
+      </div>
+    </div>
+    <div class="page-preview-area">
+      <div class="page-preview">
+        <widget class="preview-list" data-name="previewList">
+        </widget>
+      </div>
+    </div>
+  </div>
+
+</div>
+<style type="text/css" media="screen">
+  & {
+    color: white;
+    font-size: 12px;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: PingFangSC-Regular;
+  }
+
+  .left-slide {
+    height: 100%;
+    width: 70px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #2D2F33;
+    border: 1px solid #000000;
+    .slide-area {
+      position: relative;
+      height: 100%;
+      width: 70px;
+    }
+    .slide-bar {
+      margin-top: 20px;
+      padding-top: 10px;
+      height: 60px;
+      width: 100%;
+      cursor: pointer;
+    }
+    .slide-bar:hover {
+      background: #0091FF;
+    }
+    .icon-bar {
+      height: 24px;
+      width: 24px;
+      margin-left: 23px;
+    }
+    .icon-span {
+      display: block;
+      text-align: center;
+      font-family: PingFangSC-Regular;
+      font-size: 12px;
+      color: #CCCCCC;
+      line-height: 18px;
+    }
+    .create-area {
+      margin-top: 20px;
+    }
+    .create-list-title {
+      text-align: center;
+      border-bottom: 1px solid #232323;
+      height: 30px;
+      line-height: 30px;
+    }
+  }
+
+  .outer-content {
+    height: 100%;
+    width: 194px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    overflow: hidden
+  }
+
+  .right-slide {
+    height: 100%;
+    width: 177px;
+    overflow-y: scroll;
+    padding: 0 17px;
+    background: #2D2F33;
+    .confirm-area {
+      width: 140px;
+      padding: 10px 0;
+      line-height: 0;
+      border-bottom: 1px solid #232323;
+      margin: 0 auto;
+      .isMissed {
+        margin: 10px 0;
+        display: none;
+        .checkbox {
+          margin-left: 23px;
+        }
+      }
+      .confirm-icon+.confirm-icon {
+        margin-left: 30px;
+      }
+      .back,
+      .save,
+      .submit {
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .page-area {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    .page-content {
+      width: 200px;
+      height: 40px;
+      opacity: 0.7;
+      border-radius: 20px;
+      background: #2D2F33;
+      position: relative;
+      left: -50%;
+      .next-save-page::before,
+      .pre-save-page::before {
+        position: absolute;
+        top: 8px;
+        cursor: pointer;
+        transform: scale(2);
+      }
+      .pre-save-page::before {
+        content: "\25C4";
+        left: 20px;
+      }
+      .next-save-page::before {
+        content: "\25BA";
+        right: 20px;
+      }
+    }
+  }
+
+  .page-preview-area {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    .page-preview {
+      width: 580px;
+      height: 40px;
+      text-align: center;
+      position: relative;
+      left: -50%;
+    }
+  }
+
+  &.readonly {
+    .create-area {
+      display: none
+    }
+    .page-area {
+      display: none
+    }
+    .submit,
+    .save {
+      display: none
+    }
+  }
+
+  &.checking-scene {
+    .create-area {
+      display: none
+    }
+    .right-slide>.confirm-area>.isMissed,
+    .page-area {
+      display: block
+    }
+    .submit,
+    .save {
+      display: inline-block
+    }
+  }
+
+  &.checking-scene.readonly {
+    .submit,
+    .save {
+      display: none
+    }
+    .page-area {
+      display: none
+    }
+    .right-slide>.confirm-area>.isMissed {
+      display: block
+    }
+  }
+
+  &.re-annotaing-scene {
+    .create-area {
+      display: block
+    }
+    .right-slide>.confirm-area>.isMissed,
+    .page-area {
+      display: block
+    }
+    .submit,
+    .save {
+      display: inline-block
+    }
+  }
+
+
+  .checkbox {
+    display: inline-block;
+    cursor: pointer;
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      outline: none;
+      display: none
+    }
+    input[type="checkbox"]+.box-span {
+      position: relative;
+      top: 7px;
+      width: 24px;
+      height: 24px;
+      display: inline-block;
+      background: url("../resource/images/radio/normal.png") no-repeat;
+      background-position: 0 0;
+    }
+    input[type="checkbox"]:checked+.box-span {
+      background: url("../resource/images/radio/click.png") no-repeat;
+    }
+  }
+
+
+
+  .back-button,
+  .changeView-button {
+    width: 110px;
+    height: 30px;
+    position: absolute;
+    top: 0;
+    right: 0
+  }
+
+
+
+  .checking-scene.isMissed {
+    display: block
+  }
+
+  .changeView-button {
+    right: 120px;
+  }
+
+  .cover {
+    background: rgba(0, 0, 0, .7);
+  }
+
+
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
+</style>

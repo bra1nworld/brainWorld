@@ -1,0 +1,96 @@
+<div class="data-list-editor {{readonly}} {{required}} {{addButton}} {{applyButton}} {{backButton}} {{name}}">
+    <widget data-name="filter" class="filter"></widget>
+    <div class="panel data-list-panel">
+        <div class="title-area">
+            <div class="title">
+                {{title}}
+            </div>
+            <div class="action-bar">
+                <div data-id="add" class="add-button button -s -accent">
+                    添加
+                </div>
+                <div data-id="apply" class="apply-button button -s -accent">
+                    申请
+                </div>
+                <div data-id="back" class="back-button button -s -accent">
+                    返回
+                </div>
+            </div>
+        </div>
+        <div class="content-area">
+            <widget data-name="table" class="table"></widget>
+            <widget data-name="pagination" class="pagination"></widget>
+        </div>
+    </div>
+</div>
+
+<style>
+    & {
+        position: relative;
+        .action-bar>.add-button {
+            display: none;
+        }
+        .action-bar>.apply-button {
+            display: none;
+        }
+        .action-bar>.back-button {
+            display: none;
+        }
+    }
+
+    &.required {
+        >.data-list-panel>.title-area>.title:before {
+            content: "*";
+            color: @accent-text-color;
+        }
+    }
+
+    &.add-button {
+        .action-bar>.add-button {
+            display: inline-block;
+        }
+    }
+
+    &.apply-button {
+        .action-bar>.apply-button {
+            display: inline-block;
+        }
+    }
+
+    &.back-button {
+        .action-bar>.back-button {
+            display: inline-block;
+        }
+    }
+
+    &>.filter {
+        margin-bottom: @gutter-l;
+    }
+
+    &>.panel>.content-area>.pagination {
+        margin-top: @gutter-l;
+    }
+
+    &.readonly {
+        .action-bar>.add-button {
+            display: none;
+        }
+        .action-bar>.apply-button {
+            display: none;
+        }
+        .action-bar>.back-button {
+            display: none;
+        }
+        .table {
+            .action-button.delete {
+                display: none
+            }
+        }
+        .title-grid.actions {
+            display: none
+        }
+        .content-grid.actions {
+            display: none
+        }
+    }
+</style>

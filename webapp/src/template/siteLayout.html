@@ -1,0 +1,34 @@
+<div class="layout -has-sider {{hidden}}">
+    <div class="layout-sider site-sider">
+        <widget data-widget="siteSider"></widget>
+    </div>
+    <div class="layout site-content-layout">
+        <div class="layout-header site-header">
+            <widget data-widget="siteHeader"></widget>
+        </div>
+        <div class="layout-content site-content" data-id="siteContent">
+        </div>
+    </div>
+</div>
+
+<style>
+    & {
+        height: 100%;
+        &.hidden {
+            display: none;
+        }
+    }
+
+    >.site-sider {
+        width: 240px;
+    }
+
+    >.site-content-layout {
+        height: 100%;
+        >.site-content {
+            flex-shrink: 0;
+            background-color: @bg-light;
+            overflow: auto;
+        }
+    }
+</style>

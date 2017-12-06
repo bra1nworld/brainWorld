@@ -1,0 +1,23 @@
+#!/bin/bash
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+ACCESS_KEY=4QPQKEylYI7TgnL8KugWrdeaGPOanqxXO2nye8_P
+SECRET_KEY=nbwlm9aT2jtFWGCv0aQcSIiGAbBxfgAb8vjzY22S
+BUCKET=fusroda
+PREFIX=`cat $DIR/name`
+BASEURL="https://cdn.fusroda.io"
+
+export CDN_PROVIDER=qiniu
+export CDN_BUCKET=fusroda
+export CDN_DEST="qiniu:access_key=$ACCESS_KEY&secret_key=$SECRET_KEY&bucket=$BUCKET&key_prefix=$PREFIX/"
+export CDN_BASE="$BASEURL/$PREFIX"
+export CDN_PREFIX="$PREFIX/"
+export CDN_ACCESS_KEY=$ACCESS_KEY
+export CDN_SECRET_KEY=$SECRET_KEY

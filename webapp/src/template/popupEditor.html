@@ -1,0 +1,39 @@
+<div>
+  <div data-id="container">
+  </div>
+  <div class="pop-buttons">
+    <div class="pop-button" data-id="ok" class="ok">确定</div>
+    <div class="pop-button" data-id="cancel" class="cancel">取消</div>
+  </div>
+
+</div>
+<style type="text/css" media="screen">
+  & {
+
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    background: #2D2F33;
+    padding: 30px 50px;
+    box-shadow: 0 2px 20px 0 rgba(0, 0, 0, 0.30);
+    border-radius: 4px;
+    .pop-buttons {
+      margin-left: 50px;
+      margin-top: 40px;
+    }
+    .pop-button {
+      cursor: pointer;
+      text-align: center;
+      line-height: 24px;
+      color: #CCCCCC;
+      display: inline-block;
+      width: 80px;
+      height: 24px;
+      background: #393C40;
+      border-radius: 4px;
+    }
+    .pop-button+.pop-button {
+      margin-left: 20px;
+    }
+  }
+</style>

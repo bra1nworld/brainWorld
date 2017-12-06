@@ -1,0 +1,21 @@
+<div class="content-area {{name}} {{readonly}}">
+    <div class="content-area">
+        <widget data-widget="sillyForm" data-name="form"></widget>
+    </div>
+    <div class="action-area">
+        <div class="button-bar">
+            <div data-id="confirm" class="button -accent confirm-button">确定</div>
+            <div data-id="cancel" class="button cancel-button">取消</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    &.readonly .cancel-button {
+        display: none;
+    }
+
+    &.content-area>.action-area {
+        justify-content: center;
+    }
+</style>

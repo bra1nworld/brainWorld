@@ -1,0 +1,15 @@
+<div class="dropdown {{active}} -from-{{placement}} {{readonly}}">
+    <div class="dropdown-button" data-id="currentSelect">
+        <span class="text">{{currentDisplayText}}</span>
+        <i class="icon -expand"></i>
+    </div>
+    <div class="dropdown-panel">
+        <div class="menu" data-list="options">
+            <template data-name="option">
+                <div class="menu-tile" title="{{displayText}}">
+                    {{displayText}}
+                </div>
+            </template>
+        </div>
+    </div>
+</div>

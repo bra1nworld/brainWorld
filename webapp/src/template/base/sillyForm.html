@@ -1,0 +1,637 @@
+<table class="table -as-form {{readonly}}">
+    <tbody class="tbody" data-list="fields">
+    </tbody>
+
+    <template data-name="tr">
+        <tr class="tr ltr"></tr>
+    </template>
+    <template data-name="textField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <input data-id="input" type="text" class="text-field control">
+            </td>
+        </tr>
+        <style>
+            &.readonly {
+                .text-field {
+                    border-color: transparent;
+                }
+            }
+        </style>
+    </template>
+
+    <template data-name="paragraphField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <textarea rows="3" data-id="input" type="text" class="text-field -multiline control"></textarea>
+            </td>
+        </tr>
+        <style>
+            >.th {
+                vertical-align: top;
+            }
+        </style>
+    </template>
+
+    <template data-name="dictField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <widget data-name="dropdown" class="control"></widget>
+            </td>
+        </tr>
+    </template>
+
+    <template data-name="intField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <input data-id="input" type="number" class="text-field control">
+            </td>
+        </tr>
+    </template>
+    <template data-name="rpcIdField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <input data-id="input" type="text" class="text-field control">
+            </td>
+        </tr>
+    </template>
+
+    <template data-name="dateField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div class="control">
+                    <widget data-name="datePicker"></widget>
+                    <widget data-name="timePicker"></widget>
+                </div>
+            </td>
+        </tr>
+        <style>
+            .control {
+                display: flex;
+                align-items: center;
+                .time-picker {
+                    width: 120px;
+                    margin-left: @gutter;
+                    .time-picker-panel {
+                        right: 0;
+                        left: auto;
+                    }
+                    .raw-time-picker {
+                        width: 120px;
+                    }
+                }
+                .date-picker {
+                    flex: 1;
+                }
+            }
+        </style>
+    </template>
+
+    <template data-name="confirmFarewellDateField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div class="control">
+                    <widget data-name="datePicker"></widget>
+                    <widget data-name="timePicker"></widget>
+                    <button data-id="confirm" class="confirm-button button">确认</button>
+                </div>
+            </td>
+        </tr>
+        <style>
+            .control {
+                display: flex;
+                align-items: center;
+                .time-picker {
+                    width: 120px;
+                    margin-left: @gutter;
+                    .time-picker-panel {
+                        right: 0;
+                        left: auto;
+                    }
+                    .raw-time-picker {
+                        width: 120px;
+                    }
+                }
+                .confirm-button {
+                    margin-left: 5px;
+                    border: 1px solid #5F9FE8;
+                    background: #5F9FE8;
+                    color: #FFF;
+                }
+                .date-picker {
+                    flex: 1;
+                }
+            }
+        </style>
+    </template>
+
+    <!-- enterCompanyAt field -->
+    <template data-name="enterCompanyAtField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div class="control">
+                    <div class="enterCompanyAt-field">
+                        <input data-id="yearInput" type="number" placeholder="请填写年份" class="text-field year-input control">
+                        <span class="unit">年</span>
+                        <input data-id="monthInput" type="number" placeholder="请填写月份" class="text-field month-input control">
+                        <span class="unit">月</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <style>
+            .enterCompanyAt-field {
+                display: flex;
+                align-items: center;
+                >.year-input {
+                    flex: 1
+                }
+                >.unit {
+                    padding: 0 @gutter;
+                }
+                >.month-input {
+                    display: block;
+                    width: 100px;
+                }
+            }
+        </style>
+    </template>
+
+    <!-- ceremony field -->
+    <template data-name="ceremonyField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div class="control">
+                    <div class="ceremony-field {{isCeremony}}">
+                        <widget data-name="typeDropdown" class="type-dropdown"></widget>
+                        <label class="value-label }">
+                                        区域：
+                                    </label>
+                        <widget data-name="valueDropdown" class="value-dropdown "></widget>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <style>
+            .ceremony-field {
+                display: flex;
+                align-items: center;
+                >.value-dropdown {
+                    flex: 1;
+                    display: none
+                }
+                >.value-label {
+                    padding-left: @gutter;
+                    display: none
+                }
+                >.type-dropdown {
+                    display: block;
+                    width: 100%;
+                }
+            }
+
+            .ceremony-field.isCeremony {
+                >.value-label,
+                >.value-dropdown {
+                    display: block
+                }
+                >.type-dropdown {
+                    width: 200px;
+                }
+            }
+        </style>
+    </template>
+
+    <!-- rrp field -->
+    <template data-name="rrpField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div class="control">
+                    <div class="rrp-field">
+                        <widget data-name="typeDropdown" class="type-dropdown"></widget>
+                        <label class="value-label">
+                            定价：
+                        </label>
+                        <widget data-name="valueField" class="value-field"></widget>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <style>
+            .rrp-field {
+                display: flex;
+                align-items: center;
+                >.value-field {
+                    flex: 1
+                }
+                >.value-label {
+                    padding-left: @gutter;
+                }
+                >.type-dropdown {
+                    display: block;
+                    width: 110px;
+                }
+            }
+        </style>
+    </template>
+
+
+    <template data-name="unlimitedRrpField">
+        <div class="hint">
+            选择服务时填写
+        </div>
+        <style>
+            & {
+                color: @hint-text-color;
+            }
+        </style>
+    </template>
+    <template data-name="fixedRrpField">
+        <div class="number-field">
+            <input type="number" data-id="value" value="{{value}}" class="text-field value">
+        </div>
+        <style>
+            .value {
+                width: 100%;
+            }
+        </style>
+    </template>
+
+    <template data-name="rangeRrpField">
+        <div class="text-field-group -compact">
+            <div class="field-area">
+                <input type="number" data-id="min" value="{{min}}" class="text-field value">
+            </div>
+            <div class="addon-area">~</div>
+            <div class="field-area">
+                <input type="number" data-id="max" value="{{max}}" class="text-field value">
+            </div>
+        </div>
+    </template>
+    <template data-name="optionRrpField">
+        <div class="option-field" data-list="options">
+            <template data-name="tag">
+                <div class="tag">
+                    <span class="value">
+                        {{value}}
+                    </span>
+                    <span class="delete-button" data-id="delete">
+                        ✕
+                    </span>
+                </div>
+            </template>
+            <template data-name="tagEditor">
+                <div class="tag-editor {{edit}}">
+                    <div class="tag-button" data-id="edit">
+                        添加
+                    </div>
+                    <div class="tag-field-bar">
+                        <input type="number" class="tag-field" data-id="field" value="{{value}}">
+                        <div class="save-button" data-id="save">
+                            ✓
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <style>
+            & {
+                line-height: @line-height-s;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .tag {
+                margin: @gutter-xs / 2;
+            }
+
+            .tag {
+                flex-shrink: 0;
+                display: inline-block;
+                border: @border;
+                line-height: @line-height-s - 2;
+                box-sizing: border-box;
+                height: @line-height-s;
+                font-size: @font-size-s;
+                padding: 0 @gutter-s;
+                border-radius: @border-radius;
+                >.delete-button {
+                    .pointable;
+                    color: @hint-text-color;
+                    &:hover {
+                        color: @accent-text-color-hover;
+                    }
+                }
+            }
+
+            .tag-editor {
+                & {
+                    display: inline-block;
+                }
+                >.tag-button {
+                    .tag;
+                    .pointable;
+                    display: block;
+                    border: @accent-border;
+                    color: @accent-text-color;
+                    &:hover {
+                        color: @accent-text-color-hover;
+                        border: @accent-border-hover;
+                    }
+                }
+                >.tag-field-bar {
+                    & {
+                        .tag;
+                        display: block;
+                        border: @accent-border;
+                        position: relative;
+                        display: none;
+                        width: 40px + @line-height-s;
+                    }
+                    >.save-button {
+                        position: absolute;
+                        top: 0;
+                        right: @gutter-s;
+                        color: @accent-color;
+                        .pointable;
+                        &:hover {
+                            color: @accent-color-l;
+                        }
+                    }
+                    >.tag-field {
+                        line-height: @line-height-s;
+                        height: @line-height-s;
+                        padding: 0;
+                        border: none;
+                        outline: none;
+                        width: 40px;
+                        background-color: transparent;
+                        position: absolute;
+                        left: @gutter-s;
+                        top: -1px;
+                    }
+                }
+            }
+
+            .tag-editor.edit {
+                >.tag-button {
+                    display: none;
+                }
+                >.tag-field-bar {
+                    display: block;
+                }
+            }
+        </style>
+    </template>
+    <!-- /rrp field -->
+
+    <template data-name="orderField">
+        <tr class="tr -ltr {{readonly}} {{empty}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div class="product-list control" data-list="orders">
+                </div>
+                <div class="empty-hint control">
+                    (空)
+                </div>
+            </td>
+        </tr>
+        <style>
+            .product-list {
+                border-top: @divider;
+                >.product-order-field {
+                    padding: @gutter-s 0;
+                    border-bottom: @divider;
+                }
+            }
+
+            .empty-hint {
+                display: none;
+                height: @control-line-height;
+                line-height: @control-line-height;
+                color: @hint-text-color;
+                border-bottom: @divider;
+                text-align: center;
+            }
+
+            &.empty {
+                .empty-hint {
+                    display: block;
+                }
+            }
+        </style>
+    </template>
+
+    <template data-name="tagField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <widget data-name="field"></widget>
+            </td>
+        </tr>
+    </template>
+    <template data-name="dictItemArrayField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <textarea placeholder="各参数值之间用分号“;”分隔" class="text-field -multiline control" data-id="value"></textarea>
+            </td>
+        </tr>
+    </template>
+    <template data-name="customizeCapableDictField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div class="control {{customized}}">
+                    <div class="dropdown-area">
+                        <widget data-name="dropdown"></widget>
+                    </div>
+                    <div class="value-area">
+                        <input type="text" placeholder="请输入{{displayText}}" class="text-field" data-id="value">
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <style>
+            .value-area {
+                display: none;
+                padding-left: @gutter;
+                .text-field {
+                    width: 120px;
+                }
+            }
+
+            .control {
+                display: flex;
+                align-items: center;
+                .dropdown-area {
+                    flex: 1;
+                }
+            }
+
+            .control.customized {
+                .value-area {
+                    display: block;
+                }
+            }
+        </style>
+    </template>
+
+
+    <template data-name="orderMenuField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <td class="td" colspan="2">
+                <div class="field-area">
+                    <div class="title-area">
+                        <div class="title">
+                            {{displayText}}
+                        </div>
+                    </div>
+                    <div class="content-area">
+                        <widget data-name="menu"></widget>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <style>
+            >.td>.field-area {
+                padding-top: @gutter-l;
+            }
+
+            >.td>.field-area>.title-area {
+                padding: @gutter-s @gutter-s * 2;
+                border-bottom: @divider;
+                >.title {
+                    height: @line-height-l;
+                    line-height: @line-height-l;
+                }
+            }
+        </style>
+    </template>
+
+    <template data-name="settlementAmount">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+
+            <th class="th">
+                <span class="settlementAmount">金额：</span>
+            </th>
+            <td class="td">
+                <span class="settlementAmount">¥{{displayText}}</span>
+            </td>
+
+        </tr>
+        <style>
+            >.th>.settlementAmount,
+            >.td>.settlementAmount {
+                color: red;
+                font-size: 24px;
+            }
+        </style>
+    </template>
+
+    <template data-name="notificationField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div data-id="input" class="input-area text-field control"></div>
+                <div class="checkbox-area">
+                    <input data-id="checkbox" class="chekbox" type="checkbox">
+                    <span>选择通知所有人</span>
+                </div>
+            </td>
+        </tr>
+        <style>
+            >.td>div>.chekbox {
+                vertical-align: middle
+            }
+
+            &.readonly {
+                .checkbox-area {
+                    display: none
+                }
+                .input-area {
+                    disabled: true
+                }
+            }
+        </style>
+    </template>
+    <template data-name="departmentsField">
+        <tr class="tr -ltr {{readonly}} {{optional}}">
+            <th class="th">{{displayText}}
+                <span class="explanation {{description:show}}" title="{{description}}"></span>：</th>
+            <td class="td">
+                <div data-id="input" class="input-area text-field control">
+                    请选择{{displayText}}
+                </div>
+            </td>
+        </tr>
+        <style>
+            >.td>div>.chekbox {
+                vertical-align: middle
+            }
+
+            &.readonly {
+                .input-area {
+                    disabled: true
+                }
+            }
+        </style>
+    </template>
+
+</table>
+
+<style>
+    .hide {
+        display: none;
+    }
+
+    &>.tbody>.tr>.th::before {
+        content: "* ";
+        color: red;
+    }
+
+    &>.tbody>.tr.optional>.th::before {
+        content: "";
+    }
+
+    .readonly {
+        .add {
+            display: none;
+        }
+        .action-bar {
+            display: none;
+        }
+        .silly-uploader {
+            display: none;
+        }
+        .download-link {
+            display: inline;
+        }
+    }
+</style>

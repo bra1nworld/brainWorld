@@ -1,0 +1,40 @@
+<div class="panel {{collapsed}}">
+    <div class="title-area">
+        <div class="title">
+            按条件查询
+        </div>
+        <div class="action-bar">
+            <div data-id="collapse" class="collapse-button button -s">
+                {{collapseButtonText}}
+            </div>
+        </div>
+    </div>
+    <div class="content-area">
+        <widget data-widget="sillyForm" data-name="form" class="form"></widget>
+    </div>
+    <div class="action-area">
+        <div class="button-bar">
+            <div data-id="confirm" class="button -accent">
+                查询
+            </div>
+            <div data-id="reset" class="button">
+                重置
+            </div>
+        </div>
+    </div>
+</div>
+
+<style type="text/css" media="screen">
+    &.collapsed {
+        >.content-area,
+        >.action-area {
+            display: none;
+        }
+    }
+
+    >.content-area>.form {
+        >.tbody>.tr>.th {
+            width: 40%;
+        }
+    }
+</style>

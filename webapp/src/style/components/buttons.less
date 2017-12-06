@@ -1,0 +1,136 @@
+// Variables
+@button-br: @border-radius;
+@button-height: @control-line-height;
+@button-height-s: @control-line-height-s;
+@button-height-xs: @control-line-height-xs;
+@button-width: 96px;
+@button-width-s: 72px;
+@button-width-xs: 60px;
+@button-text-color: @primary-text-color;
+@button-hover-text-color: @primary-color;
+@button-bd: 1px solid @border-color;
+@button-hover-bd: 1px solid @primary-color-l;
+@button-bg: @white;
+@accent-button-text-color: @primary-text-color-light;
+@accent-button-hover-text-color: @accent-text-color-light-hover;
+@accent-button-bg: @primary-color;
+@accent-button-hover-bg: @primary-color-l;
+@accent-button-bd: 1px solid transparent;
+@accent-button-hover-bd: 1px solid @primary-color-l;
+@button-l-font-size: @font-size-l;
+@button-m-font-size: @font-size;
+@button-s-font-size: @font-size-s;
+@button-xs-font-size: @font-size-xs;
+@flat-accent-button-text-color: @accent-text-color;
+.abstract-button {
+    &,
+    &.base {
+        // common
+        display: inline-block;
+        box-sizing: border-box;
+        text-align: center;
+        border: none;
+        border-radius: @button-br;
+        cursor: pointer;
+        outline: none;
+        transition: all 300ms;
+    }
+    &.-default {
+        // states
+        // normal hover active disabled
+        // default colors or other styles
+        // may be overrided by others
+        &,
+        &.normal {
+            color: @button-text-color;
+            background-color: @button-bg;
+            border: @button-bd;
+        }
+        &:hover,
+        &:focus,
+        &:active,
+        &.active {
+            border: @button-hover-bd;
+            color: @button-hover-text-color;
+        }
+        &.disabled,
+        &[disabled] {
+            opacity: 0.5;
+            cursor: auto;
+            pointer-events: none;
+        }
+    }
+    & {
+        // sizes
+        &.-xs {
+            min-width: @button-width-xs;
+            height: @button-height-xs;
+            line-height: @button-height-xs - 2;
+            font-size: @button-s-font-size;
+            padding: 0 @gutter-s;
+        }
+        &.-s {
+            min-width: @button-width-s;
+            height: @button-height-s;
+            line-height: @button-height-s - 2;
+            font-size: @button-s-font-size;
+            padding: 0 @gutter;
+        }
+        &,
+        &.-m {
+            min-width: @button-width;
+            height: @button-height;
+            line-height: @button-height - 2;
+            font-size: @button-m-font-size;
+            padding: 0 @gutter-l;
+        }
+        &.-l {
+            font-size: @button-l-font-size;
+        }
+    }
+    & {
+        // colors
+        &.-accent {
+            // may need to override all states
+            &,
+            &.normal {
+                color: @accent-button-text-color;
+                background-color: @accent-button-bg;
+                border: @accent-button-bd;
+            }
+            &:hover {
+                border: @accent-button-hover-bd;
+                background: @accent-button-hover-bg;
+                color: @accent-button-hover-text-color;
+            }
+        }
+        &.-primary {}
+        &.-danger {}
+        &.-secondary {}
+    }
+    & {
+        // depths
+        &.-flat {
+            // may need to override all colors of all states
+            &,
+            &.-default {
+                &,
+                &.normal {
+                    border: transparent;
+                    background: transparent;
+                }
+            }
+            &.-accent {
+                color: @flat-accent-button-text-color;
+            }
+        }
+        &.-raised {
+            box-shadow: @shadow;
+        }
+    }
+}
+
+.button {
+    .abstract-button;
+    .abstract-button.-default;
+}

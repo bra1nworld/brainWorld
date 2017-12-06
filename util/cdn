@@ -1,0 +1,48 @@
+#!/bin/bash
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd $DIR/../
+
+. ./meta/env
+. ./meta/cdn
+
+
+echo "Clear qshell cache"
+rm -rf ~/.qshell >/dev/null 2>&1
+# QiniuShell qshell - https://github.com/qiniu/qshell
+configFileName=qshell-$RANDOM.json
+configFilePath="/tmp/$configFileName"
+echo "Setup qshell account info"
+cat <<EOF > $configFilePath
+{
+    "src_dir":"$DIR/../dist/webapp",
+    "overwrite":true,
+    "key_prefix":"$CDN_PREFIX",
+    "bucket":"$CDN_BUCKET"
+}
+EOF
+
+echo "CDN config:"
+cat $configFilePath
+
+case "$OSTYPE" in
+  solaris*) echo "SOLARIS not supported" ;;
+  darwin*)  qshellSuffix="darwin";; 
+  linux*)   qshellSuffix="linux";;
+  bsd*)     echo "BSD not supported" ;;
+  msys*)    echo "WINDOWS notesupported" ;;
+  *)        echo "unknown: $OSTYPE" ;;
+esac
+
+./util/resource/qshell_"$qshellSuffix"_amd64 account $CDN_ACCESS_KEY $CDN_SECRET_KEY
+./util/resource/qshell_"$qshellSuffix"_amd64 qupload 10 $configFilePath
+code=$?
+echo CDN releasing result: $code
+exit $code

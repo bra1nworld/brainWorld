@@ -1,0 +1,21 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "leaf-require": "^0.1.7",
+    "leaf-require-cli": "^1.3.8",
+    "leaf-ts": "^2.14.8",
+    "less": "^2.7.2",
+    "less-plugin-autoprefix": "^1.5.1",
+    "typescript": "^2.4.2",
+    "watchcompile": "^1.0.3"
+  }
+}

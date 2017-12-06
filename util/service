@@ -1,0 +1,69 @@
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cd $DIR/../
+
+. ./meta/env
+
+
+script="./util/start"
+PIDFILE="./pid"
+LOGFILE="./log"
+
+cmd() {
+    nohup 2>&1 $script >> $LOGFILE & 
+    echo $! > $PIDFILE
+}
+if [[ -f $PIDFILE ]];then 
+    read -r PID < "$PIDFILE"
+    # prevent stale pidfiles from hanging around
+    if [[ ! -d /proc/$PID ]]; then
+	echo 'process not found. deleteing stale pidfile'
+	unset PID
+	rm -f "$PIDFILE"
+    fi
+fi
+
+case "$1" in
+    start)
+	echo "starting..."
+	if [[ $PID ]]
+	then
+	    echo "pid exists running"
+	    echo "fail to start."
+            echo "run command to see the process: ps -e | grep $PID"
+	    exit 1
+	fi
+	cmd
+        echo "Please run 'tail -f ./log' to see the log"
+	;;
+    stop)
+	echo "stopping..."
+	if [[ $PID ]]
+	then
+            echo "kill pid $PID"
+	    kill -$PID
+            rm -f $PIDFILE
+	    echo "stopped successfully"
+	    exit 0
+	else
+	    echo "pid not found"
+	    echo "fail to stop"
+	    exit 1
+	fi
+	;;
+    restart)
+	$0 stop
+	sleep 1
+	$0 start
+	;;
+    *)
+	echo "usage $0 {start|stop|restart}"
+esac
+

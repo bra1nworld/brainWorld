@@ -1,0 +1,20 @@
+@import (inline) "lib/normalize.css";
+
+@import "core/colors";
+@import "core/metrics";
+@import "core/typography";
+@import "core/logic";
+
+html,body {
+    height: 100%;
+    overflow: hidden;
+}
+body {
+    font-family: @font-sans-serif;
+    font-size: @font-size;
+    line-height: @line-height;
+    -webkit-font-smoothing: antialiased;
+}
+p {
+    margin: 0;
+}

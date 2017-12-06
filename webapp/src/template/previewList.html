@@ -1,0 +1,84 @@
+<div class="preview-list " data-list="previewList">
+    <template>
+        <span class="preview-item {{currentIndexNumber}}">
+            <span class="current-index-icon" title="返回当前帧"></span>
+            <span class="preview-frame {{active}}">{{frameIndex}}</span>
+        </span>
+        <style type="text/css" media="screen">
+            & {
+                position: relative;
+            }
+
+            &>.preview-frame {
+                moz-user-select: -moz-none;
+                -moz-user-select: none;
+                -o-user-select: none;
+                -khtml-user-select: none;
+                -webkit-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                color: white;
+                font-size: 14px;
+                line-height: 40px;
+                display: inline-block;
+                width: 48px;
+                cursor: pointer;
+                position: relative;
+            }
+
+            &>.preview-frame.active {
+                color: #0091FF;
+                width: 46px;
+                height: 38px;
+                line-height: 38px;
+                border: 1px solid #0091FF;
+            }
+
+            &>.preview-frame:hover {
+                background: #0091FF;
+                color: white;
+            }
+
+            &.current-index-number {
+                >.preview-frame {
+                    color: red
+                }
+                >.current-index-icon {
+                    position: absolute;
+                    width: 0;
+                    height: 0;
+                    border-top: 10px solid red;
+                    border-right: 10px solid transparent;
+                    border-left: 10px solid transparent;
+                    left: 14px;
+                    top: -32px;
+                    cursor: pointer;
+                }
+            }
+        </style>
+    </template>
+    <span class="pre-page" title="预览上一帧" data-id="prePage"></span>
+    <span class="next-page" title="预览下一帧" data-id="nextPage"></span>
+</div>
+<style>
+    .next-page::before,
+    .pre-page::before {
+        position: absolute;
+        top: 8px;
+        cursor: pointer;
+        transform: scale(2);
+        z-index: 999
+    }
+
+    .pre-page::before {
+        content: "\003C";
+        left: 28px;
+        width: 15px;
+    }
+
+    .next-page::before {
+        content: "\003E";
+        right: 28px;
+        width: 15px;
+    }
+</style>

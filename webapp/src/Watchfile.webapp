@@ -1,0 +1,20 @@
+//{basename} /css/style.less => style.less
+//{fullpath} /css/style.less => /css/style.less (unchanged)
+//{filename} /css/style.less => style
+//{extname}  /css/style.less => .less
+//{directory} /css/style.less => /css/
+function AllJSExceptCreateMeta(fullPath){
+    if(fullPath.indexOf("meta.js") >= 0){
+        return false
+    }
+    return /^script\/.*\.js/.test(fullPath)
+}
+exports.watchList = [
+    [/^style\/.*less$/,'../node_modules/less/bin/lessc ./style/main.less --autoprefix="" > ./style/main.css && ../dev/notify "CSS compiled" || ../dev/notify "CSS compile failed"']
+    ,[AllJSExceptCreateMeta,"../dev/createRequire && ../dev/notify 'Dev require compiled'"]
+    ,[/^template\/.*.html/,"../node_modules/leaf-ts/bin/leaf -l ./lib/leaf.d.ts ./R.conf.d.ts && ../dev/notify 'R.ts compiled'"]
+];
+exports.serviceList = [
+    "../node_modules/typescript/bin/tsc -p ../tsconfig.json --watch",
+    "../node_modules/leaf-ts/bin/leaf --composer --composer-style-path /style/main.css -l ./lib/leaf.d.ts ./R.conf.d.ts"
+]

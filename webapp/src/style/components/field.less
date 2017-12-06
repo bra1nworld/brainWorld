@@ -1,0 +1,78 @@
+//Variables
+@field-color: @text-color;
+@field-br: @border-radius;
+@field-bd: @border;
+
+@field-font-size: @font-size-m;
+@field-line-height: @control-line-height;
+@select-border-color: @primary-color;
+@field-padding-horizontal: @gutter-s;
+
+//Mixins
+.text-field() {
+    box-sizing: border-box;
+    border-radius: @field-br;
+    font-size: @field-font-size;
+    outline: none;
+    height: @field-line-height;
+    line-height: @field-line-height - 2;
+    border: @field-bd;
+    color: @field-color;
+    padding: 0 @field-padding-horizontal;
+    transition: all 0.3s;
+    background-color: @bg;
+    &.-s {}
+    &.-xs {}
+    &:focus {
+        border: @accent-border;
+    }
+    &.-multiline {
+        height: @field-line-height * 3;
+    }
+}
+
+.text-field {
+    .text-field();
+}
+
+
+.text-field-group.-compact {
+    & {
+        .text-field();
+        padding: 0 0;
+        display: flex;
+        align-items: center;
+    }
+    >.field-area:first-child {
+        >.text-field {
+            left: -1px;
+            border-top-left-radius: @field-br;
+            border-bottom-left-radius: @field-br;
+        }
+    }
+    >.field-area:last-child {
+        >.text-field {
+            right: -1px;
+            border-top-right-radius: @field-br;
+            border-bottom-right-radius: @field-br;
+        }
+    }
+    >.field-area {
+        flex: 1;
+        >.text-field {
+            position: relative;
+            width: 100%;
+            border: transparent;
+            background-color: transparent;
+            border-radius: 0;
+            &:focus {
+                border: @accent-border;
+            }
+        }
+    }
+    >.addon-area {
+        display: block;
+        padding: 0 @gutter-s;
+        color: @hint-text-color;
+    }
+}

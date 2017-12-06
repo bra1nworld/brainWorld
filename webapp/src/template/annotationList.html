@@ -1,0 +1,158 @@
+<div>
+  <div class="list-title">List
+    <img class="list-icon" src="../../resource/images/filter.png" />
+  </div>
+  <div class="annotation-list" data-list="annotationList">
+    <template>
+      <div class="{{active}} annotation-meta  ">
+        <div class="option hasError {{checkingList}}">
+          <label class="checkbox">是否标注错误
+            <input type="checkbox" data-id="hasError" />
+            <span class="box-span hasError-box"></span>
+          </label>
+        </div>
+
+        <div class="option">
+          <span class="option-title">类型: </span>
+          <span class="option-info">{{objectTypeIndex}}</span>
+        </div>
+        <div class="option">
+
+          <span class="option-title">颜色:</span>
+          <div data-id="colorBlock" class="option-info color-block"></div>
+        </div>
+        <div class="option">
+          <span class="item-show operate {{show}}" data-id="show" title="显示item"></span>
+          <span class="item-edit operate" data-id="edit" title="编辑item"></span>
+          <span class="item-remove operate" data-id="remove" title="删除item"></span>
+
+        </div>
+
+        <widget class="action-list" data-name="actionList"></widget>
+      </div>
+      <style type="text/css" media="screen">
+        & {
+          font-family: PingFangSC-Regular;
+          color: white;
+          font-size: 12px;
+          /* height: 142px; */
+          padding: 0 10px;
+          margin-top: 16px;
+          box-sizing: border-box;
+          position: relative;
+          background: #393C40;
+          /* .annotation-meta{
+            position: relative
+          } */
+        }
+
+        &.active {
+          background: #222;
+        }
+
+        .option {
+          padding: 0 10px;
+          height: 34px;
+          line-height: 34px;
+          vertical-align: middle;
+          .option-title {
+            color: #696969;
+          }
+          .option-info {
+            margin-left: 20px;
+          }
+          .hasError-box {
+            margin-left: 20px;
+          }
+          .operate+.operate {
+            margin-left: 20px;
+          }
+          .operate {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            vertical-align: middle;
+            cursor: pointer;
+          }
+          .item-show {
+            background: url("../resource/images/normal/hide.png") no-repeat;
+          }
+          .item-show.show {
+            background: url("../resource/images/show.png") no-repeat;
+          }
+          .item-edit {
+            background: url("../resource/images/normal/edit.png") no-repeat;
+          }
+          .item-edit.active {
+            background: url("../resource/images/edit-click.png") no-repeat;
+          }
+          .item-remove {
+            background: url("../resource/images/normal/delete.png") no-repeat;
+          }
+          .item-remove.active {
+            background: url("../resource/images/delete-active.png") no-repeat;
+          }
+        }
+
+        .option+.option,
+        .option.hasError.checkingList+.option {
+          border-top: 1px solid #2D2F33
+        }
+
+        .option.hasError+.option {
+          border-top: none
+        }
+
+        .hasError {
+          display: none
+        }
+
+        .checking-list.hasError {
+          display: block
+        }
+
+        .color-block {
+          display: inline-block;
+          vertical-align: middle;
+          width: 60px;
+          height: 12px;
+          background: #0091FF;
+          border-radius: 100px;
+        }
+
+        .remove,
+        .edit {
+          font-size: 10px;
+          background: #ddd;
+          color: #222;
+          position: absolute;
+          top: 24px;
+          right: 5px;
+          cursor: pointer;
+          padding: 0px 5px;
+          line-height: 15px;
+          border-radius: 2px;
+        }
+
+        .edit {
+          top: 5px;
+        }
+      </style>
+    </template>
+  </div>
+
+</div>
+<style type="text/css" media="screen">
+  & {
+    margin-top: 10px;
+    .list-title {
+      height: 24px;
+      line-height: 24px;
+      margin: 10px 0 0 20px;
+      .list-icon {
+        margin-left: 75px;
+        vertical-align: top;
+      }
+    }
+  }
+</style>

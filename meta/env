@@ -1,0 +1,32 @@
+#!/bin/bash
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+originalDir=`pwd`
+#export PATH=$PWD/webapp/node_modules/.bin:$PWD/server/node_modules/.bin:$PATH
+
+export PATH=$PWD/util:$PATH
+[ -d $PWD/meta/server ] && export PATH=$PWD/meta/server:$PATH
+
+cd $DIR
+PORT=`cat port`
+[ -z "$PORT" ] && PORT=10096
+
+
+export SERVER_PORT=$PORT
+export SERVER_HOST=0.0.0.0
+export PROJECT_NAME=`cat name`
+export PROJECT_DOMAIN=`cat domain`
+export RELEASE_PATH=/srv/$PROJECT_NAME
+pushd $DIR/.. >/dev/null 2>&1
+export tsc=`pwd`/server/node_modules/typescript/bin/tsc
+popd >/dev/null 2>&1
+[ -f "./domain" ] && export SERVER_DOMAIN=`cat ./domain`
+
+cd $originalDir
+
