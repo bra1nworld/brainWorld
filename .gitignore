@@ -16,6 +16,7 @@ webapp/src/test/private.ts
 
 *.js
 *.js.map
+
 !webapp/src/script/raw/*
 !webapp/src/debug-init.js
 !webapp/src/test/test-init.js
