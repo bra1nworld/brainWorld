@@ -45,16 +45,6 @@ class Application {
         let scene = new AnnotationScene({}, () => { })
         scene.appendTo(document.body)
         scene.render()
-        // this.services.setup(() => {
-        //     this.route.route("/task/:sceneId/:frameIndex", (params) => {
-        //         console.log(params, "??")
-        //         let scene = new AnnotationScene(params.sceneId, parseInt(params.frameIndex))
-        //         scene.appendTo(document.body)
-        //         scene.render()
-        //         window["scene"] = scene
-        //     })
-        //     this.route.handle(window.location.toString())
-        // })
 
     }
     loading(loading: boolean = true) {

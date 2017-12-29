@@ -69,16 +69,17 @@ declare namespace SceneAnnotation {
         y: number
     }
     interface RectAngleInfo {
-        xDistance: number
-        yDistance: number
-        zDistance: number
-        centerPosition: Vector3
-        rotateYAngle: number
+        // xDistance: number
+        // yDistance: number
+        // zDistance: number
+        // centerPosition: Vector3
+        // rotateYAngle: number
+        dims: number[]//x,y,z distance
+        pose: number[]//中心坐标和旋转平移，[x, y, z, qw, qx, qy, qz]
         cubeMaterial: {
             color: string,
             wireframe: boolean
         }
-        pointIndice?: number[]
     }
     interface ArrawInfo {
         ringPoints: Vector2[]
@@ -89,6 +90,17 @@ declare namespace SceneAnnotation {
             yPositive: Vector3
         }
     }
+    interface Rectangle {
+        rectAngleInfo: RectAngleInfo
+        arrawInfo: ArrawInfo
+    }
+
+    interface RawScene {
+        id: string
+        frames?: Frame[]
+        length?: number
+    }
+
     namespace Annotation {
         interface Box {
             type: "box"
@@ -111,21 +123,20 @@ declare namespace SceneAnnotation {
         }
         type Geometry = Box | Ball | Points | Rectangle
     }
-    interface RawScene {
-        id: string
-        frames?: Frame[]
-        length?: number
-    }
-    interface Annotation {
+    interface AnnotationBox {
         id: ID
-        name?: string
-        type: AnnotationTargetType
-        geometry?: Annotation.Geometry
-        color?: string
-        objectType: number
+        type: string//"box"
+        label: number
+        box: Rectangle
+        color: string
         invalid?: boolean
     }
-
+    interface AnnotationGroup {
+        id: ID
+        type: string//"group"
+        label: number
+        children?: AnnotationBox[]
+    }
 
     interface Video {
         id: ID

@@ -185,7 +185,7 @@ var RectangleInteractable = /** @class */ (function (_super) {
             visible: true,
             color: "#000000"
         };
-        var geo = (annotation.geometry || {});
+        var geo = (annotation.box || {});
         _this.rectAngleInfo = geo.rectAngleInfo || null;
         _this.arrawInfo = geo.arrawInfo || null;
         _this.points.color = new THREE.Color("#aa0000");
@@ -260,15 +260,24 @@ var RectangleInteractable = /** @class */ (function (_super) {
     };
     RectangleInteractable.prototype.addRectangle = function (ps, rotateAngle, ringPoints, pointIndice) {
         var xArray = [], yArray = [], zArray = [];
-        //rotateAngle:由controller.getAzimuthalAngle()得出的角度即为实际旋转角度(此时-y轴朝向屏幕外),
+        //rotateAngle:由controller.getAzimuthalAngle()得出的角度,
         //旋转是为了相对摆正坐标轴
-        var matrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), -rotateAngle), //转回初始位置(坐标水平竖直)
-        reverseMatrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), rotateAngle); //再次转回最终位置
+        //从当前位置转到与坐标水平竖直位置
+        // let matrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), -rotateAngle);
+        //从与坐标水平竖直位置转到当前位置(即标注之前坐标轴旋转角度)
+        //let reverseMatrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), rotateAngle);
+        //四元数表示矩阵
+        var quaternion = new THREE.Quaternion();
+        //从当前位置转到与坐标水平竖直位置
+        quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -rotateAngle);
+        var reverseQuaternion = new THREE.Quaternion();
+        //从与坐标水平竖直位置转到当前位置(即标注之前坐标轴旋转角度)
+        reverseQuaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), rotateAngle);
         //处理选中的点
         var rectPointIndice = pointIndice ? pointIndice : this.pointIndice;
         rectPointIndice.forEach(function (i) {
-            var psVec4 = new THREE.Vector4(ps[i].x, ps[i].y, ps[i].z, 1);
-            var psResult = psVec4.applyMatrix4(matrix);
+            var psVec3 = new THREE.Vector3(ps[i].x, ps[i].y, ps[i].z);
+            var psResult = psVec3.applyQuaternion(quaternion);
             xArray.push(psResult.x);
             yArray.push(psResult.y);
             zArray.push(psResult.z);
@@ -285,13 +294,10 @@ var RectangleInteractable = /** @class */ (function (_super) {
         var zPosition = (maxZ + minZ) / 2;
         var positionVec3 = new THREE.Vector3(xPosition, yPosition, zPosition);
         //cube中心反向旋转回原来位置
-        var resultPosition = positionVec3.applyMatrix4(reverseMatrix);
+        var resultPosition = positionVec3.applyQuaternion(reverseQuaternion);
         this.rectAngleInfo = {
-            xDistance: xDistance,
-            yDistance: yDistance,
-            zDistance: zDistance,
-            centerPosition: resultPosition,
-            rotateYAngle: rotateAngle,
+            dims: [xDistance, yDistance, zDistance],
+            pose: [resultPosition.x, resultPosition.y, resultPosition.z, reverseQuaternion.w, reverseQuaternion.x, reverseQuaternion.y, reverseQuaternion.z],
             cubeMaterial: {
                 color: this.data.color,
                 wireframe: true
@@ -299,12 +305,12 @@ var RectangleInteractable = /** @class */ (function (_super) {
         };
         this.cube = this.createRectangle(this.rectAngleInfo);
         this.scene.scene.add(this.cube);
-        //这些点为第一次矩阵变换后的cube的各个面的中点
+        //这些点为第一次矩阵变换后(转回到与坐标轴垂直时)的cube的各个面的中点
         var faceCenterPoint = {
             xNegative: new THREE.Vector3(xPosition + xDistance / 2, yPosition, zPosition),
             xPositive: new THREE.Vector3(xPosition - xDistance / 2, yPosition, zPosition),
-            yNegative: new THREE.Vector3(xPosition, yPosition, zPosition - zDistance / 2),
-            yPositive: new THREE.Vector3(xPosition, yPosition, zPosition + zDistance / 2)
+            yNegative: new THREE.Vector3(xPosition, yPosition - yDistance / 2, zPosition),
+            yPositive: new THREE.Vector3(xPosition, yPosition + yDistance / 2, zPosition)
         };
         this.arrawInfo = {
             ringPoints: ringPoints,
@@ -313,52 +319,57 @@ var RectangleInteractable = /** @class */ (function (_super) {
         this.addArrow(this.rectAngleInfo, this.arrawInfo);
     };
     RectangleInteractable.prototype.createRectangle = function (rectAngleInfo) {
-        var xDistance = rectAngleInfo.xDistance, yDistance = rectAngleInfo.yDistance, zDistance = rectAngleInfo.zDistance, centerPosition = rectAngleInfo.centerPosition, rotateYAngle = rectAngleInfo.rotateYAngle, cubeMaterial = rectAngleInfo.cubeMaterial;
+        var dims = rectAngleInfo.dims, pose = rectAngleInfo.pose, cubeMaterial = rectAngleInfo.cubeMaterial;
         var material = new THREE.MeshBasicMaterial({
             color: cubeMaterial.color,
             wireframe: cubeMaterial.wireframe
         });
-        var geometry = new THREE.CubeGeometry(xDistance, yDistance, zDistance, 0, 0, 0);
+        var geometry = new THREE.CubeGeometry(dims[0], dims[1], dims[2], 0, 0, 0);
         var cube = new THREE.Mesh(geometry, material);
-        cube.position.set(centerPosition.x, centerPosition.y, centerPosition.z);
+        cube.position.set(pose[0], pose[1], pose[2]);
         //cube绕自己Y轴旋转回原来的位置
-        if (rotateYAngle)
-            cube.rotateY(rotateYAngle);
+        var quaternion = new THREE.Quaternion();
+        quaternion.set(pose[4], pose[5], pose[6], pose[3]);
+        cube.setRotationFromQuaternion(quaternion);
         return cube;
     };
     RectangleInteractable.prototype.addArrow = function (rectAngleInfo, arrawInfo) {
-        var xDistance = rectAngleInfo.xDistance, yDistance = rectAngleInfo.yDistance, zDistance = rectAngleInfo.zDistance, centerPosition = rectAngleInfo.centerPosition, rotateYAngle = rectAngleInfo.rotateYAngle, cubeMaterial = rectAngleInfo.cubeMaterial;
+        var dims = rectAngleInfo.dims, pose = rectAngleInfo.pose, cubeMaterial = rectAngleInfo.cubeMaterial;
         var faceCenterPoint = arrawInfo.faceCenterPoint, ringPoints = arrawInfo.ringPoints;
         var xNegative = faceCenterPoint.xNegative, xPositive = faceCenterPoint.xPositive, yNegative = faceCenterPoint.yNegative, yPositive = faceCenterPoint.yPositive;
         if (!ringPoints)
             return;
         //用到了THREE.Vector3的applyMatrix4属性,需要生成
-        var XNegative = new THREE.Vector3(xNegative.x, xNegative.y, xNegative.z), XPositive = new THREE.Vector3(xPositive.x, xPositive.y, xPositive.z), ZNegative = new THREE.Vector3(yNegative.x, yNegative.y, yNegative.z), ZPositive = new THREE.Vector3(yPositive.x, yPositive.y, yPositive.z);
+        var XNegative = new THREE.Vector3(xNegative.x, xNegative.y, xNegative.z), XPositive = new THREE.Vector3(xPositive.x, xPositive.y, xPositive.z), YNegative = new THREE.Vector3(yNegative.x, yNegative.y, yNegative.z), YPositive = new THREE.Vector3(yPositive.x, yPositive.y, yPositive.z);
         //旋转之后yz轴变换
         var pointStart = ringPoints[0], pointEnd = ringPoints[2];
-        //再次转回最终位置
-        var matrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), rotateYAngle);
-        var rightDir = new THREE.Vector3(1, 0, 0).applyMatrix4(matrix), leftDir = new THREE.Vector3(-1, 0, 0).applyMatrix4(matrix), topDir = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix), bottomDir = new THREE.Vector3(0, 0, -1).applyMatrix4(matrix);
+        //从与坐标轴垂直位置转到最终位置
+        // let matrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), rotateYAngle)
+        //四元数表示
+        var quaternion = new THREE.Quaternion();
+        quaternion.set(pose[4], pose[5], pose[6], pose[3]);
+        var rightDir = new THREE.Vector3(1, 0, 0), leftDir = new THREE.Vector3(-1, 0, 0), topDir = new THREE.Vector3(0, 1, 0), bottomDir = new THREE.Vector3(0, -1, 0);
         var arrowDir;
         var arrowOrigin;
-        if (xDistance > zDistance) {
+        //ArrowHelper无法用矩阵或四元数来位移旋转
+        if (dims[0] > dims[1]) {
             if (pointEnd.x > pointStart.x) {
-                arrowDir = rightDir;
-                arrowOrigin = XNegative.applyMatrix4(matrix);
+                arrowDir = rightDir.applyQuaternion(quaternion);
+                arrowOrigin = XNegative.applyQuaternion(quaternion);
             }
             else {
-                arrowDir = leftDir;
-                arrowOrigin = XPositive.applyMatrix4(matrix);
+                arrowDir = leftDir.applyQuaternion(quaternion);
+                arrowOrigin = XPositive.applyQuaternion(quaternion);
             }
         }
         else {
-            if (pointEnd.y > pointStart.y) {
-                arrowDir = topDir;
-                arrowOrigin = ZPositive.applyMatrix4(matrix);
+            if (pointEnd.y < pointStart.y) {
+                arrowDir = topDir.applyQuaternion(quaternion);
+                arrowOrigin = YPositive.applyQuaternion(quaternion);
             }
             else {
-                arrowDir = bottomDir;
-                arrowOrigin = ZNegative.applyMatrix4(matrix);
+                arrowDir = bottomDir.applyQuaternion(quaternion);
+                arrowOrigin = YNegative.applyQuaternion(quaternion);
             }
         }
         var arrowLength = 3;
@@ -367,8 +378,6 @@ var RectangleInteractable = /** @class */ (function (_super) {
         var arrowColor = parseInt("0x" + cubeMaterial.color.split("#")[1], 16);
         this.arrow = new THREE.ArrowHelper(arrowDir, arrowOrigin, arrowLength, arrowColor, arrowHeadLength, arrowHeadWidth);
         this.scene.scene.add(this.arrow);
-        var arrowObject = this.arrow;
-        this.arrow.rotateY(rotateYAngle);
     };
     RectangleInteractable.prototype.addPointReference = function (index) {
         if (this.pointIndice.indexOf(index) < 0) {
@@ -399,11 +408,10 @@ var RectangleInteractable = /** @class */ (function (_super) {
         var random = Math.random().toString().substr;
         return {
             id: this.annotation.id,
-            type: "rectangle",
+            type: "box",
             color: this.data.color,
-            objectType: this.annotation.objectType,
-            geometry: {
-                type: "rectangle",
+            label: this.annotation.label,
+            box: {
                 rectAngleInfo: rectAngleInfo,
                 arrawInfo: arrawInfo
             }
@@ -530,6 +538,7 @@ var Ring = /** @class */ (function () {
             return;
         var p0 = this.points[0];
         context.save();
+        context.beginPath();
         context.moveTo(p0.x, p0.y);
         for (var _i = 0, _a = this.points; _i < _a.length; _i++) {
             var p = _a[_i];
@@ -538,6 +547,7 @@ var Ring = /** @class */ (function () {
         if (this.closed) {
             context.lineTo(p0.x, p0.y);
         }
+        context.closePath();
         context.strokeStyle = this.color ? this.color : "#00ff00";
         context.lineWidth = 1.5;
         context.stroke();

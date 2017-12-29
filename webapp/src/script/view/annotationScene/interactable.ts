@@ -1,13 +1,14 @@
 import { Layer2d, Drawable } from "./layer2d"
-import * as dat from "../../lib/dat.gui"
 import { ActionList } from "./actionList"
 import { AnnotationScene, Interactable, SmartPoints } from "./annotationScene"
+import { magenta } from "colors";
+import { concat } from "async";
 export abstract class InteractableAnnotationGeometry implements Interactable {
-    annotation: SceneAnnotation.Annotation
+    annotation: SceneAnnotation.AnnotationBox
     abstract type: string
     abstract setMeta(any)
     abstract redraw()
-    abstract toJSON(): SceneAnnotation.Annotation
+    abstract toJSON(): SceneAnnotation.AnnotationBox
     abstract data: {
         color: string
     }
@@ -25,7 +26,7 @@ export abstract class InteractableAnnotationGeometry implements Interactable {
 }
 
 export namespace InteractableAnnotationGeometry {
-    export function fromJSON(data: SceneAnnotation.Annotation, actionList: ActionList, readonly: boolean): InteractableAnnotationGeometry {
+    export function fromJSON(data: SceneAnnotation.AnnotationBox, actionList: ActionList, readonly: boolean): InteractableAnnotationGeometry {
         switch (data.type) {
             case "rectangle":
                 return new RectangleInteractable(data, actionList, readonly)
@@ -170,18 +171,13 @@ export class PointsInteractable extends InteractableAnnotationGeometry {
     }
 }
 
-
 type RectAngleInfo = {
-    xDistance: number
-    yDistance: number
-    zDistance: number
-    centerPosition: THREE.Vector3
-    rotateYAngle: number
+    dims: number[]//x,y,z distance
+    pose: number[]//中心坐标和旋转平移，[x, y, z, qw, qx, qy, qz]
     cubeMaterial: {
         color: string,
         wireframe: boolean
     }
-    pointIndice?: number[]
 }
 type ArrawInfo = {
     ringPoints: THREE.Vector2[]
@@ -192,7 +188,6 @@ type ArrawInfo = {
         yPositive: THREE.Vector3
     }
 }
-
 
 export class RectangleInteractable extends InteractableAnnotationGeometry {
     static type = "rectangle"
@@ -210,9 +205,9 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
 
     hasFinishedDraw = true;
 
-    constructor(public annotation: SceneAnnotation.Annotation, public actionList: ActionList, public readonly: boolean) {
+    constructor(public annotation: SceneAnnotation.AnnotationBox, public actionList: ActionList, public readonly: boolean) {
         super()
-        let geo = (annotation.geometry || {}) as SceneAnnotation.Annotation.Rectangle
+        let geo = (annotation.box || {}) as SceneAnnotation.Rectangle
         this.rectAngleInfo = geo.rectAngleInfo as RectAngleInfo || null
         this.arrawInfo = geo.arrawInfo as ArrawInfo || null
         this.points.color = new THREE.Color("#aa0000")
@@ -288,15 +283,28 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
 
     addRectangle(ps: THREE.Vector3[], rotateAngle: number, ringPoints: THREE.Vector2[], pointIndice?: number[]) {
         let xArray = [], yArray = [], zArray = [];
-        //rotateAngle:由controller.getAzimuthalAngle()得出的角度即为实际旋转角度(此时-y轴朝向屏幕外),
+        //rotateAngle:由controller.getAzimuthalAngle()得出的角度,
         //旋转是为了相对摆正坐标轴
-        let matrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), -rotateAngle),//转回初始位置(坐标水平竖直)
-            reverseMatrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), rotateAngle);//再次转回最终位置
+
+
+        //从当前位置转到与坐标水平竖直位置
+        // let matrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), -rotateAngle);
+        //从与坐标水平竖直位置转到当前位置(即标注之前坐标轴旋转角度)
+        //let reverseMatrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), rotateAngle);
+
+        //四元数表示矩阵
+        let quaternion = new THREE.Quaternion();
+        //从当前位置转到与坐标水平竖直位置
+        quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -rotateAngle)
+        let reverseQuaternion = new THREE.Quaternion();
+        //从与坐标水平竖直位置转到当前位置(即标注之前坐标轴旋转角度)
+        reverseQuaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), rotateAngle)
+
         //处理选中的点
         let rectPointIndice = pointIndice ? pointIndice : this.pointIndice
         rectPointIndice.forEach(i => {
-            let psVec4 = new THREE.Vector4(ps[i].x, ps[i].y, ps[i].z, 1)
-            let psResult = psVec4.applyMatrix4(matrix)
+            let psVec3 = new THREE.Vector3(ps[i].x, ps[i].y, ps[i].z)
+            let psResult = psVec3.applyQuaternion(quaternion)
             xArray.push(psResult.x)
             yArray.push(psResult.y)
             zArray.push(psResult.z)
@@ -317,14 +325,11 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
 
         let positionVec3 = new THREE.Vector3(xPosition, yPosition, zPosition)
         //cube中心反向旋转回原来位置
-        let resultPosition = positionVec3.applyMatrix4(reverseMatrix)
+        let resultPosition = positionVec3.applyQuaternion(reverseQuaternion)
 
         this.rectAngleInfo = {
-            xDistance: xDistance,
-            yDistance: yDistance,
-            zDistance: zDistance,
-            centerPosition: resultPosition,
-            rotateYAngle: rotateAngle,
+            dims: [xDistance, yDistance, zDistance],
+            pose: [resultPosition.x, resultPosition.y, resultPosition.z, reverseQuaternion.w, reverseQuaternion.x, reverseQuaternion.y, reverseQuaternion.z],
             cubeMaterial: {
                 color: this.data.color,
                 wireframe: true
@@ -333,12 +338,12 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
         this.cube = this.createRectangle(this.rectAngleInfo)
         this.scene.scene.add(this.cube)
 
-        //这些点为第一次矩阵变换后的cube的各个面的中点
+        //这些点为第一次矩阵变换后(转回到与坐标轴垂直时)的cube的各个面的中点
         let faceCenterPoint = {
             xNegative: new THREE.Vector3(xPosition + xDistance / 2, yPosition, zPosition),
             xPositive: new THREE.Vector3(xPosition - xDistance / 2, yPosition, zPosition),
-            yNegative: new THREE.Vector3(xPosition, yPosition, zPosition - zDistance / 2),
-            yPositive: new THREE.Vector3(xPosition, yPosition, zPosition + zDistance / 2)
+            yNegative: new THREE.Vector3(xPosition, yPosition - yDistance / 2, zPosition),
+            yPositive: new THREE.Vector3(xPosition, yPosition + yDistance / 2, zPosition)
         }
         this.arrawInfo = {
             ringPoints: ringPoints,
@@ -348,16 +353,18 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
     }
 
     createRectangle(rectAngleInfo: RectAngleInfo): THREE.Mesh {
-        let { xDistance, yDistance, zDistance, centerPosition, rotateYAngle, cubeMaterial } = rectAngleInfo
+        let { dims, pose, cubeMaterial } = rectAngleInfo
         let material = new THREE.MeshBasicMaterial({
             color: cubeMaterial.color,
             wireframe: cubeMaterial.wireframe
         });
-        let geometry = new THREE.CubeGeometry(xDistance, yDistance, zDistance, 0, 0, 0)
+        let geometry = new THREE.CubeGeometry(dims[0], dims[1], dims[2], 0, 0, 0)
         let cube = new THREE.Mesh(geometry, material)
-        cube.position.set(centerPosition.x, centerPosition.y, centerPosition.z)
+        cube.position.set(pose[0], pose[1], pose[2])
         //cube绕自己Y轴旋转回原来的位置
-        if (rotateYAngle) cube.rotateY(rotateYAngle)
+        let quaternion = new THREE.Quaternion();
+        quaternion.set(pose[4], pose[5], pose[6], pose[3])
+        cube.setRotationFromQuaternion(quaternion)
         return cube
     }
 
@@ -365,7 +372,7 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
         rectAngleInfo: RectAngleInfo,
         arrawInfo: ArrawInfo
     ) {
-        let { xDistance, yDistance, zDistance, centerPosition, rotateYAngle, cubeMaterial } = rectAngleInfo
+        let { dims, pose, cubeMaterial } = rectAngleInfo
         let { faceCenterPoint, ringPoints } = arrawInfo
         let { xNegative, xPositive, yNegative, yPositive } = faceCenterPoint
         if (!ringPoints) return
@@ -373,39 +380,44 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
         //用到了THREE.Vector3的applyMatrix4属性,需要生成
         let XNegative = new THREE.Vector3(xNegative.x, xNegative.y, xNegative.z),
             XPositive = new THREE.Vector3(xPositive.x, xPositive.y, xPositive.z),
-            ZNegative = new THREE.Vector3(yNegative.x, yNegative.y, yNegative.z),
-            ZPositive = new THREE.Vector3(yPositive.x, yPositive.y, yPositive.z)
+            YNegative = new THREE.Vector3(yNegative.x, yNegative.y, yNegative.z),
+            YPositive = new THREE.Vector3(yPositive.x, yPositive.y, yPositive.z)
 
         //旋转之后yz轴变换
         let pointStart = ringPoints[0],
             pointEnd = ringPoints[2];
 
-        //再次转回最终位置
-        let matrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), rotateYAngle)
-        let rightDir = new THREE.Vector3(1, 0, 0).applyMatrix4(matrix),
-            leftDir = new THREE.Vector3(-1, 0, 0).applyMatrix4(matrix),
-            topDir = new THREE.Vector3(0, 0, 1).applyMatrix4(matrix),
-            bottomDir = new THREE.Vector3(0, 0, -1).applyMatrix4(matrix);
+        //从与坐标轴垂直位置转到最终位置
+        // let matrix = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), rotateYAngle)
+
+        //四元数表示
+        let quaternion = new THREE.Quaternion();
+        quaternion.set(pose[4], pose[5], pose[6], pose[3])
+
+        let rightDir = new THREE.Vector3(1, 0, 0),
+            leftDir = new THREE.Vector3(-1, 0, 0),
+            topDir = new THREE.Vector3(0, 1, 0),
+            bottomDir = new THREE.Vector3(0, -1, 0);
 
         let arrowDir: THREE.Vector3;
         let arrowOrigin: THREE.Vector3;
 
-
-        if (xDistance > zDistance) {//确定长短边，箭头在较短的面上
+        //ArrowHelper无法用矩阵或四元数来位移旋转
+        if (dims[0] > dims[1]) {//确定长短边，箭头在较短的面上
             if (pointEnd.x > pointStart.x) {//起手方向为矩形方向
-                arrowDir = rightDir
-                arrowOrigin = XNegative.applyMatrix4(matrix)
+                arrowDir = rightDir.applyQuaternion(quaternion)
+                arrowOrigin = XNegative.applyQuaternion(quaternion)
             } else {
-                arrowDir = leftDir
-                arrowOrigin = XPositive.applyMatrix4(matrix)
+                arrowDir = leftDir.applyQuaternion(quaternion)
+                arrowOrigin = XPositive.applyQuaternion(quaternion)
             }
         } else {
-            if (pointEnd.y > pointStart.y) {//起手方向为矩形方向
-                arrowDir = topDir
-                arrowOrigin = ZPositive.applyMatrix4(matrix)
+            if (pointEnd.y < pointStart.y) {//起手方向为矩形方向
+                arrowDir = topDir.applyQuaternion(quaternion)
+                arrowOrigin = YPositive.applyQuaternion(quaternion)
             } else {
-                arrowDir = bottomDir
-                arrowOrigin = ZNegative.applyMatrix4(matrix)
+                arrowDir = bottomDir.applyQuaternion(quaternion)
+                arrowOrigin = YNegative.applyQuaternion(quaternion)
             }
         }
 
@@ -415,9 +427,6 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
         let arrowColor = parseInt(`0x${cubeMaterial.color.split("#")[1]}`, 16);
         this.arrow = new THREE.ArrowHelper(arrowDir, arrowOrigin, arrowLength, arrowColor, arrowHeadLength, arrowHeadWidth);
         this.scene.scene.add(this.arrow);
-        let arrowObject = this.arrow as THREE.Object3D
-        this.arrow.rotateY(rotateYAngle)
-
     }
     private addPointReference(index: number) {
         if (this.pointIndice.indexOf(index) < 0) {
@@ -444,17 +453,16 @@ export class RectangleInteractable extends InteractableAnnotationGeometry {
     hitTest(camera: THREE.Camera, position: THREE.Vector2) {
 
     }
-    toJSON(): SceneAnnotation.Annotation {
+    toJSON(): SceneAnnotation.AnnotationBox {
         let rectAngleInfo = this.rectAngleInfo as SceneAnnotation.RectAngleInfo,
             arrawInfo = this.arrawInfo as SceneAnnotation.ArrawInfo
         let random = Math.random().toString().substr
         return {
             id: this.annotation.id,
-            type: "rectangle",
+            type: "box",
             color: this.data.color,
-            objectType: this.annotation.objectType,
-            geometry: {
-                type: "rectangle",
+            label: this.annotation.label,
+            box: {
                 rectAngleInfo: rectAngleInfo,
                 arrawInfo: arrawInfo
             }
@@ -578,6 +586,7 @@ class Ring implements Drawable {
         if (this.points.length < 2) return
         let p0 = this.points[0]
         context.save()
+        context.beginPath()
         context.moveTo(p0.x, p0.y)
         for (let p of this.points) {
             context.lineTo(p.x, p.y)
@@ -585,7 +594,7 @@ class Ring implements Drawable {
         if (this.closed) {
             context.lineTo(p0.x, p0.y)
         }
-
+        context.closePath()
         context.strokeStyle = this.color ? this.color : "#00ff00"
         context.lineWidth = 1.5
         context.stroke()

@@ -15,7 +15,7 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
     camera = new THREE.OrthographicCamera(-50, 50, 25, -25, 0.01, 1000);
     renderer = new THREE.WebGLRenderer({ alpha: true, canvas: this.UI.canvas })
     canvas = this.UI.canvas
-    controller = new THREE.OrbitControls(this.camera, this.UI.canvas)
+    controller: THREE.OrbitControls
     hotkey = new HotkeyManager()
     // interactives = new InteractManager(this.scene, this.camera, this.UI.canvas)
     light = new THREE.DirectionalLight(0xffffff, 1.1)
@@ -28,13 +28,7 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
     paddingSize: number
     previewPoints
     initAnnotations: SceneAnnotation.Annotation[]
-    //gui.add(this, 'size', 0, 10).onChange(this.redraw.bind(this));
-    //gui.add(this, 'transparent').onChange(this.redraw.bind(this));
-    //gui.add(this, 'opacity', 0, 1).onChange(this.redraw.bind(this));
-    //gui.add(this, 'vertexColors').onChange(this.redraw.bind(this));
-    //gui.addColor(this, 'color').onChange(this.redraw.bind(this));
-    //gui.add(this, 'sizeAttenuation').onChange(this.redraw.bind(this));
-    //gui.add(this, 'rotateSystem');
+    gridHelper: THREE.GridHelper
     constructor(public option: {
         frameId?: string,//保存annotations
         readonly?: boolean//是否只读(详情)
@@ -48,20 +42,25 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
         this.camera.position.x = 0
         this.camera.position.y = 0
         this.camera.position.z = 500
+        this.camera.rotateZ(Math.PI / 2)
+        this.camera.up.set(0, 0, 1)
         //PerspectiveCamera:
         // this.camera.position.x = 0
         // this.camera.position.y = 180
         // this.camera.position.z = 0
-        this.controller.minPolarAngle = 0; // radians
-        this.controller.update()
-        this.lockChangeView()
+
         this.light.target.position.set(-1, -1, -1)
         this.scene.add(this.light.target)
         this.scene.add(this.light)
         this.scene.add(this.ambient)
-        let gridHelper = new THREE.GridHelper(1000, 200, 0x38d3f5, 0x000000)
-        this.scene.add(gridHelper);
-        this.initPreviewList()
+        this.gridHelper = new THREE.GridHelper(1000, 200, 0x38d3f5, 0x000000)
+        this.gridHelper.rotateX(Math.PI / 2)
+        this.scene.add(this.gridHelper);
+
+        //在camera之后初始化
+        this.controller = new THREE.OrbitControls(this.camera, this.UI.canvas)
+        this.lockChangeView()
+        // this.initPreviewList()
         this.initAnnotationList()
         this.readonly(this.option.readonly)
         this.loadCloud()
@@ -83,18 +82,13 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
             this.initAnnotations = this.annotationList.getAnnotations()
         })
     }
-    initPreviewList() {
 
+    initPreviewList() {
         this.previewList = new PreviewList(233, 2333)
         this.previewList.events.listenBy(this, "click", (index) => {
             console.log(index)
         })
 
-    }
-
-    checkDataChanged(): boolean {
-        let annotations: SceneAnnotation.Annotation[] = this.annotationList.getAnnotations()
-        return !(arrayEquals(this.initAnnotations, annotations))
     }
 
     events = new Leaf.EventEmitter<{
@@ -113,20 +107,8 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
 
     //返回按钮
     onClickBack() {
-        if (this.option.readonly) {
-            document.body.removeChild(document.querySelector(".annotating-scene"))
-            this.callback()
-        } else {
-            if (this.checkDataChanged()) {
-                if (window.confirm("confirm back?")) {
-                    document.body.removeChild(document.querySelector(".annotating-scene"))
-                    this.callback()
-                }
-            } else {
-                document.body.removeChild(document.querySelector(".annotating-scene"))
-                this.callback()
-            }
-        }
+        document.body.removeChild(document.querySelector(".annotating-scene"))
+        this.callback()
     }
 
     onClickSave() {
@@ -148,6 +130,8 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
     lockChangeView() {
         if (!this.lockView) {
             this.controller.maxPolarAngle = 0;
+            this.controller.minPolarAngle = 0;
+            // this.scene.add(this.gridHelper);
             // this.camera.position.y = 150
             // this.camera.position.z = 0
             // this.camera.position.x = 0
@@ -156,9 +140,11 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
             this.VM.lockView = "unlockView"
         } else {
             this.controller.maxPolarAngle = Math.PI;
+            this.controller.minPolarAngle = 0;
             // this.camera.position.y = 150 / (Math.sqrt(2))
             // this.camera.position.z = 150 / (Math.sqrt(2))
             // this.camera.position.x = 0
+            // this.scene.remove(this.gridHelper);
             this.lockView = false
             this.controller.update()
             this.VM.lockView = "lockView"
@@ -168,28 +154,16 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
     public points: SmartPoints
 
     loadCloud() {
-        // App.api.getFrameTaskById({ id: this.option.frameId }, (err, frameTask) => {
-        //     if (err) {
-        //         console.error(err)
-        //         return
-        //     }
-        //     App.api.getFramePoints({
-        //         filePath: frameTask.videoPath,
-        //         frameIndex: frameTask.frameIndex
-        //     }, (err, result) => {
-        //         //使用BufferGeometry
-        //         this.points = SmartPoints.createFramePoints(result)
-
-        //         this.scene.add(this.points.mesh)
-        //         this.annotationList.provider.refresh()
-        //     })
-        // })
 
         let loader = new THREE.PCDLoader()
         loader.load("/resource/test.pcd", (mesh) => {
             this.points = SmartPoints.createFramePoints(SmartPoints.fromPointsCloud(mesh))
             this.scene.add(this.points.mesh)
         })
+
+        //random points
+        // this.points = SmartPoints.createFramePoints(SmartPoints.createRandomPoints())
+        // this.scene.add(this.points.mesh)
     }
 
     render() {
@@ -211,48 +185,6 @@ export class AnnotationScene extends R.AnnotationScene.AnnotationScene {
     }
 }
 
-
-class Controls {
-    constructor(public scene: THREE.Scene) {
-        this.redraw();
-    }
-    size = 0.2;
-    transparent = true;
-    opacity = 1;
-    vertexColors = true;
-    color = 0xffffff;
-    sizeAttenuation = true;
-    rotateSystem = false;
-    redraw() {
-        //if (this.scene.getObjectByName("particles")) {
-        //    this.scene.remove(this.scene.getObjectByName("particles"));
-        //}
-        //this.createParticles(this.size, this.transparent, this.opacity, this.vertexColors, this.sizeAttenuation, this.color);
-    }
-    cloud: THREE.Points
-    createParticles(size, transparent, opacity, vertexColors, sizeAttenuation, color) {
-        var geom = new THREE.Geometry();
-        var material = new THREE.PointsMaterial({
-            size: this.size,
-            transparent: this.transparent,
-            opacity: this.opacity,
-            vertexColors: this.vertexColors,
-            sizeAttenuation: this.sizeAttenuation,
-            color: this.color
-        });
-        var range = 500;
-        for (var i = 0; i < 15000; i++) {
-            var particle = new THREE.Vector3(Math.random() * range - range / 2, Math.random() * range - range / 2, Math.random() * range - range / 2);
-            geom.vertices.push(particle);
-            //color = new THREE.Color(0x00ff00);
-            //color.setHSL(color.getHSL().h, color.getHSL().s, Math.random() * color.getHSL().l);
-            geom.colors.push(color);
-        }
-        this.cloud = new THREE.Points(geom, material);
-        this.cloud.name = "particles";
-        this.scene.add(this.cloud);
-    }
-}
 
 export class InteractManager {
     constructor(public scene: THREE.Scene, public camera: THREE.Camera, public listeningElement: HTMLElement) {
@@ -307,6 +239,23 @@ export class SmartPoints {
     public mesh: THREE.Points
     public rotatedPoints: THREE.Vector3[]
     private isRotatedPoints = false
+
+    static createRandomPoints(): Point[] {
+        let minZ = -5,
+            maxZ = 100,
+            xRange = 500,
+            yRange = 500,
+            count = 100000,
+            points: Point[] = [];
+        for (let i = 0; i < count; i++) {
+            let x = (Math.random() - 0.5) * xRange,
+                y = (Math.random() - 0.5) * yRange,
+                z = (1 - Math.random()) * (maxZ - minZ);
+            points.push({ x: x, y: y, z: z })
+        }
+        return points
+    }
+
     static fromPointsCloud(cloud: THREE.Points) {
         let bg = cloud.geometry as THREE.BufferGeometry
         let attrs = bg.getAttribute("position")
@@ -332,19 +281,19 @@ export class SmartPoints {
         for (let i = 0, l = points.length; i < l; i++) {
             //y轴,z轴做转换,即this.points.mesh.rotateX(-Math.PI / 2)
             //由于使用的是BufferGeometry,mesh和points同时旋转
-            sp.rotatedPoints.push(new THREE.Vector3(points[i].x, points[i].z, -points[i].y))
+            sp.rotatedPoints.push(new THREE.Vector3(points[i].x, points[i].y, points[i].z))
             positions[i * 3] = points[i].x
-            positions[i * 3 + 1] = points[i].z
-            positions[i * 3 + 2] = -points[i].y
+            positions[i * 3 + 1] = points[i].y
+            positions[i * 3 + 2] = points[i].z
 
             zPositions.push(points[i].z)
         }
         let heightest = Math.max.apply(Math, zPositions),
             lowest = Math.min.apply(Math, zPositions);
         let lowestColorZ = -3,
-            heightestColorZ = 3,
+            heightestColorZ = 3,//100
             lowestColorH = 0,
-            heightestColorH = 120;
+            heightestColorH = 120;//350
         for (let i = 0, l = zPositions.length; i < l; i++) {
             let rgb;
             if (zPositions[i] < lowestColorZ) {
@@ -452,32 +401,13 @@ export class SmartPoints {
         this.geometry.vertices.push(...points)
         this.mesh.geometry = this.geometry
         this.geometry.verticesNeedUpdate = true
-        //this.geometry.colorsNeedUpdate = true
-        //this.material.needsUpdate = true
-        //this.mesh.geometry = this.geometry
     }
     getPoints(): THREE.Vector3[] {
         //使用BufferGeometry,从新获得points
         return this.rotatedPoints
-
-        // return this.geometry.vertices.slice()
     }
     getRotatedPoints(): THREE.Vector3[] {
-        //使用BufferGeometry,不用单独获得rotatedPoints,所以代码和getPoints一样
         return this.rotatedPoints
-
-        // let points = this.geometry.vertices.slice();
-        //this.geometry.vertices旋转点只能执行一次
-        // if (!this.isRotatedPoints) {
-        // points.map(point => {
-        //     let t = point.y;
-        //     point.y = point.z;
-        //     point.z = -t;
-        // })
-        // console.log(123)
-        // this.isRotatedPoints = true
-        // }
-        // return points
     }
     public color: THREE.Color = new THREE.Color(0, 255, 255);
     // return indexes

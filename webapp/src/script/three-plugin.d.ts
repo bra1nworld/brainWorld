@@ -12,6 +12,7 @@ declare namespace THREE {
         update()
         getPolarAngle()
         getAzimuthalAngle()
+        rotateTheta()
         addEventListener(event: string, callback: Function)
         constructor(obj: THREE.Object3D, listeningInterface: HTMLElement)
     }

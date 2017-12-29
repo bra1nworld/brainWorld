@@ -34,16 +34,6 @@ var Application = /** @class */ (function () {
         var scene = new annotationScene_1.AnnotationScene({}, function () { });
         scene.appendTo(document.body);
         scene.render();
-        // this.services.setup(() => {
-        //     this.route.route("/task/:sceneId/:frameIndex", (params) => {
-        //         console.log(params, "??")
-        //         let scene = new AnnotationScene(params.sceneId, parseInt(params.frameIndex))
-        //         scene.appendTo(document.body)
-        //         scene.render()
-        //         window["scene"] = scene
-        //     })
-        //     this.route.handle(window.location.toString())
-        // })
     };
     Application.prototype.loading = function (loading) {
         if (loading === void 0) { loading = true; }
